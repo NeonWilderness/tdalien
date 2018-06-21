@@ -18,6 +18,8 @@ class AlienInsideTwoday {
       colorNavIcon: '#13c4a5',
       forceHttp: false,
       positionToast: 'toast-top-full-width',
+      menuOffsetTop: 0,
+      menuOffsetRight: 0,
       debug: false
     };
   }
@@ -46,16 +48,24 @@ class AlienInsideTwoday {
 
     this.options = Object.assign({}, this.defaults, options);
     this.options.newBlogAlias = this.getNewBlogAlias();
+
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
     if (this.options.forceHttp && location.protocol === 'https:')
       location.protocol = 'http:';
+
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
     if (this.options.colorAlias !== this.defaults.colorAlias)
       $('#alias').css('color', this.options.colorAlias);
+
+    let navIcon = $('#showMenu');
     this.options.colorNavIcon = this.options.colorNavIcon.toLowerCase();
     if (this.options.colorNavIcon !== this.defaults.colorNavIcon)
-      $('#showMenu').css('color', this.options.colorNavIcon);
+      navIcon.css('color', this.options.colorNavIcon);
+    if (!!this.options.menuOffsetTop)
+      navIcon.css('top', 8 + this.options.menuOffsetTop);
+    if (!!this.options.menuOffsetRight)
+      navIcon.css('right', 25 + this.options.menuOffsetRight);
 
     $('.alien').each((index, el) => {
       switch (el.tagName) {
@@ -87,7 +97,7 @@ class AlienInsideTwoday {
         let $menuParams = $('#menuParams');
         if (this.options.targetUrl === this.defaults.targetUrl) {
           $menuParams.addClass('highlight');
-          toastr.warning('<div style="text-align:center">Bitte klicken Sie im Menü auf <b>Parameter/Einstellungen</b>, um <b>Ihren eigenen Blog</b> zu aktivieren!&emsp;<i class="fa fa-arrow-right"></i></div>');
+          toastr.warning('<div style="text-align:center">Bitte klicken Sie im Menü auf <b>Parameter/Einstellungen</b>, um <b>Ihren eigenen Blog</b> zu aktivieren!</div>');
         }
         else {
           $menuParams.removeClass('highlight');
@@ -108,10 +118,15 @@ class AlienInsideTwoday {
         document.body.classList.remove('show-menu');
       else
         document.body.classList.add('show-menu');
+      navIcon.attr('title', `Menü ${isOpen ? 'ein' : 'aus'}blenden`);
       icon.addClass('fa-spin');
       setTimeout(() => {
         icon.toggleClass('fa-navicon fa-close');
         icon.removeClass('fa-spin');
+        if (!!this.options.menuOffsetTop)
+          navIcon.css('top', 8 + (Number(!isOpen) * this.options.menuOffsetTop));
+        if (!!this.options.menuOffsetRight)
+          navIcon.css('right', 25 + (Number(!isOpen) * this.options.menuOffsetRight));
       }, 500);
       isOpen = !isOpen;
     };
