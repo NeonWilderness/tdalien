@@ -14,8 +14,8 @@ class AlienInsideTwoday {
       multiParts: ['commentUrl', 'comments'], // 0: alpha, 1: number
       pauseChecks: 1000 * 60 * 2, // pause 2 min in between checks
       syncStories: 3,
-      colorAlias: '#cb405c',
-      colorNavIcon: '#cb405c',
+      colorAlias: '#13c4a5',
+      colorNavIcon: '#13c4a5',
       forceHttp: false,
       positionToast: 'toast-top-full-width',
       debug: false
@@ -46,14 +46,15 @@ class AlienInsideTwoday {
 
     this.options = Object.assign({}, this.defaults, options);
     this.options.newBlogAlias = this.getNewBlogAlias();
+    if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
     if (this.options.forceHttp && location.protocol === 'https:')
       location.protocol = 'http:';
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
-    if (this.options.colorAlias.toLowerCase() !== this.defaults.colorAlias)
+    if (this.options.colorAlias !== this.defaults.colorAlias)
       $('#alias').css('color', this.options.colorAlias);
     this.options.colorNavIcon = this.options.colorNavIcon.toLowerCase();
-    if (this.options.colorNavIcon.toLowerCase() !== this.defaults.colorNavIcon)
+    if (this.options.colorNavIcon !== this.defaults.colorNavIcon)
       $('#showMenu').css('color', this.options.colorNavIcon);
 
     $('.alien').each((index, el) => {
