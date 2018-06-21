@@ -1,5 +1,4 @@
 import './alien.less';
-//import { setTimeout } from 'timers';
 import { readStoriesSkin } from './skin';
 const urlJoin = require('url-join');
 
@@ -13,19 +12,20 @@ class AlienInsideTwoday {
       publishedField: 'pubDate',
       commentsField: 'comments',
       multiParts: ['commentUrl', 'comments'], // 0: alpha, 1: number
-      pauseChecks: 1000 * 60 * 5, // pause 5 min in between checks
+      pauseChecks: 1000 * 60 * 2, // pause 2 min in between checks
       syncStories: 3,
       colorAlias: '#cb405c',
       colorNavIcon: '#cb405c',
       forceHttp: false,
-      positionToast: 'toast-top-full-width'
+      positionToast: 'toast-top-full-width',
+      debug: false
     };
   }
 
   checkNewVersionAvailability() {
     const parseVersion = (version) => { return parseInt(version.replace(/\./g, '')); };
 
-    $.getJSON('https://rawgit.com/NeonWilderness/twodayExport/master/package.json', function (pkg) {
+    $.getJSON('https://rawgit.com/NeonWilderness/tdalien/master/package.json', function (pkg) {
       let thisVersion = parseVersion(document.body.dataset.version);
       if (parseVersion(pkg.version) > thisVersion) {
         $('#btnClose').on('click', function (e) {
@@ -49,9 +49,11 @@ class AlienInsideTwoday {
 
     if (this.options.forceHttp && location.protocol === 'https:')
       location.protocol = 'http:';
-    if (this.options.colorAlias !== this.defaults.colorAlias)
+    this.options.colorAlias = this.options.colorAlias.toLowerCase();
+    if (this.options.colorAlias.toLowerCase() !== this.defaults.colorAlias)
       $('#alias').css('color', this.options.colorAlias);
-    if (this.options.colorNavIcon !== this.defaults.colorNavIcon)
+    this.options.colorNavIcon = this.options.colorNavIcon.toLowerCase();
+    if (this.options.colorNavIcon.toLowerCase() !== this.defaults.colorNavIcon)
       $('#showMenu').css('color', this.options.colorNavIcon);
 
     $('.alien').each((index, el) => {
@@ -145,7 +147,7 @@ class AlienInsideTwoday {
       success: function (data) {
         if (data.query.count > 0) { // [ { title, commentUrl, comments, published }, ... ]
           let rssStories = self.readStoriesFromRssData(data.query.results.item);
-          console.log('RSS stories: ', rssStories);
+          if (self.options.debug) console.log('Parsed RSS stories: ', rssStories);
           readStoriesSkin(rssStories);
         }
       }
@@ -157,6 +159,7 @@ class AlienInsideTwoday {
 
   readStoriesFromRssData(json) {
     let multiCommentFields = (this.options.multiParts.length > 1);
+    if (this.options.debug) console.log(`YQL JSON: ${JSON.stringify(json, null, 2)}`);
     let rssStories = json.reduce((all, item) => {
 
       // eliminate seconds in published date

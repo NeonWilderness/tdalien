@@ -30,7 +30,7 @@ const readStoriesSkinContent = () => {
       };
       let skinStories = JSON.parse(params.skin);
       skinStories.forEach(story => { story.published = new Date(story.published); });
-      console.log('readStoriesSkinContent: ', params, skinStories);
+      console.log('readStoriesSkinContent: ', skinStories);
       resolve({ params, skinStories });
     })
       .fail(() => {

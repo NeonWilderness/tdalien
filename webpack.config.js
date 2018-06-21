@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const getPackageVersion = () => {
   let pkg = JSON.parse(fs.readFileSync('./package.json'));
@@ -63,7 +64,7 @@ module.exports = {
       {
         test: /\.less$/,
         use: [
-          { loader: 'style-loader' },
+          { loader: MiniCssExtractPlugin.loader },
           { loader: 'css-loader' },
           { loader: 'less-loader', options: { compress: true } }
         ]
@@ -71,6 +72,9 @@ module.exports = {
     ]
   },
   plugins: [
+    new MiniCssExtractPlugin({
+      filename: "alien.css"
+    }),    
     new HtmlWebPackPlugin({
       template: './src/alien.html',
       filename: './site-page-skin.html',
