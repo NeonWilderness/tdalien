@@ -1,2 +1,2 @@
 # Todo List
-- [ ] Task 1
+- [ ] self-update if new version is detected and update is confirmed

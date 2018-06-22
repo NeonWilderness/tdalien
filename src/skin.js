@@ -13,28 +13,59 @@ const xhrError = (when, which, xhr) => {
   toastr.error(`Fehler beim ${when} von ${which}: ${xhr.status} | ${xhr.statustext}.`);
 };
 
+const getSkinData = (data) => {
+  let $form = $(data).find('form');
+  return {
+    secretKey: $form.find('[name=secretKey]').val(),
+    action: $form.find('[name="action"]').val(),
+    key: $form.find('[name="key"]').val(),
+    skinset: $form.find('[name="skinset"]').val(),
+    module: $form.find('[name="module"]').val(),
+    title: $form.find('[name="title"]').val(),
+    description: $form.find('[name="description"]').html(),
+    skin: $form.find('[name=skin]').val(),
+    save: $form.find('[name="save"]').val()
+  };
+};
+
+const readParamsSkinContent = () => {
+  return new Promise((resolve, reject) => {
+    let xhr = $.get(`/layouts/alien/skins/edit?key=Site.implant`, function (data) {
+      let params = getSkinData(data);
+      resolve(params);
+    })
+      .fail(() => {
+        xhrError('Lesen(get)', 'Skin Site.implant', xhr);
+        reject();
+      });
+
+  });
+};
+
+const saveParamsSkinContent = (params) => {
+  return new Promise((resolve, reject) => {
+    let xhr = $.post(`/layouts/alien/skins/edit?key=Site.implant`, params, function () {
+      resolve();
+    })
+      .fail(() => {
+        xhrError('Update(post)', 'Skin Site.implant', xhr);
+        reject();
+      });
+
+  });
+};
+
 const readStoriesSkinContent = () => {
   return new Promise((resolve, reject) => {
     let xhr = $.get(`/layouts/alien/skins/edit?key=Site.stories`, function (data) {
-      let $form = $(data).find('form');
-      let params = {
-        secretKey: $form.find('[name=secretKey]').val(),
-        action: $form.find('[name="action"]').val(),
-        key: $form.find('[name="key"]').val(),
-        skinset: $form.find('[name="skinset"]').val(),
-        module: $form.find('[name="module"]').val(),
-        title: $form.find('[name="title"]').val(),
-        description: $form.find('[name="description"]').html(),
-        skin: $form.find('[name=skin]').val(),
-        save: $form.find('[name="save"]').val()
-      };
+      let params = getSkinData(data);
       let skinStories = JSON.parse(params.skin);
       skinStories.forEach(story => { story.published = new Date(story.published); });
       console.log('readStoriesSkinContent: ', skinStories);
       resolve({ params, skinStories });
     })
       .fail(() => {
-        xhrError('Lesen(get)', 'Skin.stories', xhr);
+        xhrError('Lesen(get)', 'Skin Site.stories', xhr);
         reject();
       });
 
@@ -47,7 +78,7 @@ const saveStoriesSkinContent = (params) => {
       resolve();
     })
       .fail(() => {
-        xhrError('Update(post)', `Skin.stories`, xhr);
+        xhrError('Update(post)', 'Skin Site.stories', xhr);
         reject();
       });
 
@@ -233,4 +264,10 @@ const readStoriesSkin = (rssStories) => {
     );
 };
 
-module.exports = { readStoriesSkin };
+module.exports = { 
+  readStoriesSkin, 
+  readStoriesSkinContent, 
+  saveStoriesSkinContent,
+  readParamsSkinContent,
+  saveParamsSkinContent
+};

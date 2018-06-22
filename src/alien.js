@@ -1,5 +1,11 @@
 import './alien.less';
-import { readStoriesSkin } from './skin';
+import {
+  readStoriesSkin,
+  readStoriesSkinContent,
+  saveStoriesSkinContent,
+  readParamsSkinContent,
+  saveParamsSkinContent
+} from './skin';
 const urlJoin = require('url-join');
 
 class AlienInsideTwoday {
@@ -26,13 +32,23 @@ class AlienInsideTwoday {
 
   checkNewVersionAvailability() {
     const parseVersion = (version) => { return parseInt(version.replace(/\./g, '')); };
+    let self = this;
 
     $.getJSON('https://rawgit.com/NeonWilderness/tdalien/master/package.json', function (pkg) {
       let thisVersion = parseVersion(document.body.dataset.version);
       if (parseVersion(pkg.version) > thisVersion) {
-        $('#btnClose').on('click', function (e) {
+        $('#btnClose, #btnCancel').on('click', function (e) {
           e.preventDefault();
           $('#newVersion').fadeOut();
+        });
+        $('#btnUpdate').on('click', function (e) {
+          e.preventDefault();
+          $('#msgNewVersion').fadeOut();
+          $('#msgUpdate').fadeIn();
+        });
+        $('#btnSaveParams').on('click', function (e) {
+          e.preventDefault();
+          self.saveCurrentParams();
         });
         $('#newVersion').fadeIn(900);
       }
@@ -94,6 +110,8 @@ class AlienInsideTwoday {
 
         this.checkNewVersionAvailability();
 
+        this.restoreSavedParams();
+
         let $menuParams = $('#menuParams');
         if (this.options.targetUrl === this.defaults.targetUrl) {
           $menuParams.addClass('highlight');
@@ -152,7 +170,7 @@ class AlienInsideTwoday {
 
   readAlienRSS() {
     let yql = 'https://query.yahooapis.com/v1/public/yql?q=';
-    let query = `select ${this.options.titleField}, ${this.options.publishedField}, ${this.options.commentsField} from rss where url="${urlJoin(this.options.targetUrl, this.options.rssFeedUrl, `?d=${new Date().getTime()}`)}"`;
+    let query = `select ${this.options.titleField}, ${this.options.publishedField}${this.options.commentsField.length ? ', ' : ''}${this.options.commentsField} from rss where url="${urlJoin(this.options.targetUrl, this.options.rssFeedUrl, `?d=${new Date().getTime()}`)}"`;
     let endpoint = `${yql}${encodeURIComponent(query)}&format=json&${encodeURIComponent('env=store://datatables.org/alltableswithkeys')}`;
 
     let self = this;
@@ -205,6 +223,47 @@ class AlienInsideTwoday {
       .map(key => Object.assign({ comments: '0', commentUrl: '' }, rssStories[key]))
       .sort((a, b) => { return b.published.getTime() - a.published.getTime(); })
       .slice(0, this.options.syncStories);
+  }
+
+  restoreSavedParams() {
+    let savedVersion = localStorage.getItem('savedAlienVersion');
+    let savedStories = localStorage.getItem('savedAlienSkinStories');
+    let savedParams = localStorage.getItem('savedAlienSkinParams');
+    if (!savedVersion || !savedStories || !savedParams) return;
+    readStoriesSkinContent()
+      .then(({ params }) => {
+        params.skin = savedStories;
+        return saveStoriesSkinContent(params);
+      })
+      .then(() => readParamsSkinContent())
+      .then((params) => {
+        params.skin = savedParams;
+        return saveParamsSkinContent(params);
+      })
+      .then(() => {
+        localStorage.removeItem('savedVersion'); // deactivate restore trigger
+        toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich wiederhergestellt!');
+        toastr.info('Bitte laden Sie nun die Seite neu per "Hard-Reload" (Windows: Strg-F5, Mac: Cmd-R).');
+      })
+      .catch(err =>
+        toastr.error(`Die Wiederherstellung der Parameter/Einstellungen endete mit Fehler: ${err}.`)
+      );
+  }
+
+  saveCurrentParams() {
+    readStoriesSkinContent()
+      .then(({ skinStories }) => {
+        localStorage.setItem('savedAlienSkinStories', JSON.stringify(skinStories));
+        return readParamsSkinContent();
+      })
+      .then((params) => {
+        localStorage.setItem('savedAlienSkinParams', params.skin);
+        localStorage.setItem('savedAlienVersion', document.body.dataset.version);
+        toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich gesichert!');
+      })
+      .catch(err =>
+        toastr.error(`Die Sicherung der Parameter/Einstellungen endete mit Fehler: ${err}.`)
+      );
   }
 
 }
