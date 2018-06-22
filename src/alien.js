@@ -245,7 +245,7 @@ class AlienInsideTwoday {
         return saveParamsSkinContent(params);
       })
       .then(() => {
-        localStorage.removeItem('savedVersion'); // deactivate restore trigger
+        localStorage.removeItem('savedAlienVersion'); // deactivate restore trigger
         toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich wiederhergestellt!');
         toastr.info('Bitte laden Sie nun die Seite neu per "Hard-Reload" (Windows: Strg-F5, Mac: Cmd-R).');
       })
