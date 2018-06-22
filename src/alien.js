@@ -31,12 +31,11 @@ class AlienInsideTwoday {
   }
 
   checkNewVersionAvailability() {
-    const parseVersion = (version) => { return parseInt(version.replace(/\./g, '')); };
     let self = this;
 
     $.getJSON('https://rawgit.com/NeonWilderness/tdalien/master/package.json', function (pkg) {
-      let thisVersion = parseVersion(document.body.dataset.version);
-      if (parseVersion(pkg.version) > thisVersion) {
+      let thisVersion = self.parseVersion(document.body.dataset.version);
+      if (self.parseVersion(pkg.version) > thisVersion) {
         $('#btnClose, #btnCancel').on('click', function (e) {
           e.preventDefault();
           $('#newVersion').fadeOut();
@@ -168,6 +167,10 @@ class AlienInsideTwoday {
     return maySync;
   }
 
+  parseVersion(version) { 
+    return parseInt(version.replace(/\./g, ''));
+  }
+
   readAlienRSS() {
     let yql = 'https://query.yahooapis.com/v1/public/yql?q=';
     let query = `select ${this.options.titleField}, ${this.options.publishedField}${this.options.commentsField.length ? ', ' : ''}${this.options.commentsField} from rss where url="${urlJoin(this.options.targetUrl, this.options.rssFeedUrl, `?d=${new Date().getTime()}`)}"`;
@@ -230,6 +233,7 @@ class AlienInsideTwoday {
     let savedStories = localStorage.getItem('savedAlienSkinStories');
     let savedParams = localStorage.getItem('savedAlienSkinParams');
     if (!savedVersion || !savedStories || !savedParams) return;
+    if (this.parseVersion(document.body.dataset.version) <= this.parseVersion(savedVersion)) return;
     readStoriesSkinContent()
       .then(({ params }) => {
         params.skin = savedStories;

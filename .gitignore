@@ -3,5 +3,5 @@
 .vscode
 *.log
 gulp*.*
+todo.md
 node_modules
-todo.*
