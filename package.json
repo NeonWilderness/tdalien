@@ -6,6 +6,7 @@
   "scripts": {
     "build": "webpack --mode production",
     "deploy": "node ./utils/uploadSkin --blog=foundation",
+    "deploy:ts": "node ./utils/uploadSkin --blog=talkstraight",
     "dev": "webpack --mode development",
     "patch": "node ./utils/bump --mode=patch",
     "minor": "node ./utils/bump --mode=minor",

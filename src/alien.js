@@ -44,7 +44,7 @@ class AlienInsideTwoday {
         $('#btnUpdate').on('click', function (e) {
           e.preventDefault();
           $('#msgNewVersion').fadeOut();
-          $('#msgUpdate').fadeIn();
+          $('#msgUpdate').fadeIn().css('display', 'inline-block');
         });
         $('#btnSaveParams').on('click', function (e) {
           e.preventDefault();
