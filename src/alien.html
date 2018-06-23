@@ -31,10 +31,10 @@
         <a href="//www.twoday.net/"><i class="fa fa-circle-o fa-fw"></i>twoday startseite</a>
         <a href="<% site.href %>"><i class="fa fa-home fa-fw"></i><% site.alias %> (twoday)</a>
         <a class="alien" href="#"><i class="fa fa-wordpress fa-fw"></i><% site.alias %> (neu)</a>
-        <a href='<% site.href %>manage'><i class="fa fa-dashboard fa-fw"></i><% site.alias %> admin</a>
+        <a class="adminOnly" href='<% site.href %>manage'><i class="fa fa-dashboard fa-fw"></i><% site.alias %> admin</a>
         <a href="//www.twoday.net/members/updated"><i class="fa fa-group fa-fw"></i>twoday abonnements</a>
         <a href="//www.twoday.net/members/account"><i class="fa fa-user fa-fw"></i>twoday account</a>
-        <a id="menuParams" href="/layouts/alien/skins/edit?key=Site.implant"><i class="fa fa-cog fa-fw"></i>Parameter / Einstellungen</a>
+        <a id="menuParams" class="adminOnly" href="/layouts/alien/skins/edit?key=Site.implant"><i class="fa fa-cog fa-fw"></i>Parameter / Einstellungen</a>
         <a href="//www.twoday.net/members/logout"><i class="fa fa-sign-out fa-fw"></i>abmelden</a>
       </nav>
     </div>

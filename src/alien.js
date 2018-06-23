@@ -107,6 +107,8 @@ class AlienInsideTwoday {
     setTimeout(() => {
       if (this.isUserAdministrator()) {
 
+        $('.adminOnly').show(0);
+
         this.checkNewVersionAvailability();
 
         this.restoreSavedParams();
