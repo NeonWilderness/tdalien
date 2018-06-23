@@ -102,12 +102,15 @@ class AlienInsideTwoday {
       timeOut: '8000'
     };
 
+    let loggedIn = ('<% username %>'.length > 0);
+    $(`.sign${loggedIn ? 'out' : 'in'}`).show(0).css('display', 'block');
+
     this.initClickFunctions();
 
     setTimeout(() => {
       if (this.isUserAdministrator()) {
 
-        $('.adminOnly').show(0);
+        $('.adminOnly').show(0).css('display', 'block');
 
         this.checkNewVersionAvailability();
 
