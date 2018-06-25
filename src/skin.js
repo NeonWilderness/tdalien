@@ -174,9 +174,9 @@ const updateTwodayStory = (story) => {
         $alienStatus.text(JSON.stringify(story, null, 2));
       else
         $content.append(alienStatus(story));
-      formData.content_title = story.title || '...';  
+      formData.content_title = story.title || '...';
       formData.content_text = $content.html();
-      formData.createtime = `${story.published.toISOString().substr(0,10)} ${story.published.toTimeString().substr(0,5)}`;
+      formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
 
       xhr = $.post(storyEditUrl, formData, function () {
         toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday aktualisiert.`);
@@ -205,9 +205,9 @@ const createTwodayStory = (story) => {
 
       story.alienLastUpdate = new Date().toISOString();
       let formData = getFormData(data);
-      formData.content_title = story.title || '...';  
+      formData.content_title = story.title || '...';
       formData.content_text = alienStatus(story);
-      formData.createtime = `${story.published.toISOString().substr(0,10)} ${story.published.toTimeString().substr(0,5)}`;
+      formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
 
       xhr = $.post(storyCreateUrl, formData, function () {
         toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday neu angelegt.`);
@@ -236,6 +236,8 @@ const readStoriesSkin = (rssStories) => {
       const changedOrNewStories = compareStories(rssStories, skinStories);
       if (Object.keys(changedOrNewStories).length > 0)
         return readStoriesMain(changedOrNewStories);
+      else
+        return Promise.resolve([]);
     })
     .then(finalStories => {
       console.log('finalStories: ', finalStories);
@@ -253,8 +255,11 @@ const readStoriesSkin = (rssStories) => {
       }
     })
     .then(() => {
-      skinParams.skin = JSON.stringify(rssStories, null, 2);
-      return saveStoriesSkinContent(skinParams);
+      let newSkinContent = JSON.stringify(rssStories, null, 2);
+      if (skinParams.skin !== newSkinContent) {
+        skinParams.skin = newSkinContent;
+        return saveStoriesSkinContent(skinParams);
+      } else return Promise.resolve();
     })
     .then(() => {
       toastr.success('Synchronisation erfolgreich abgeschlossen.');
@@ -264,9 +269,9 @@ const readStoriesSkin = (rssStories) => {
     );
 };
 
-module.exports = { 
-  readStoriesSkin, 
-  readStoriesSkinContent, 
+module.exports = {
+  readStoriesSkin,
+  readStoriesSkinContent,
   saveStoriesSkinContent,
   readParamsSkinContent,
   saveParamsSkinContent
