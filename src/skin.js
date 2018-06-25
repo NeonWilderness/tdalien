@@ -1,6 +1,6 @@
 /**
- * Read and update a skin on the Twoday Blogger platform
- * =====================================================
+ * Read, create or update skins or stories on the Twoday Blogger platform
+ * ======================================================================
  * 
  */
 const slugify = require('slugify');

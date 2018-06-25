@@ -11,10 +11,7 @@ const updateSkin = require('./_updateSkin');
 const argv = require('yargs').argv;
 
 /**
- * Request-Promise sequence to update one skin
- * @param story object
- *      name    string skin name, e.g. site.cdnSettings
- *      content string skin content
+ * Request-Promise sequence to update the Site.page and Site.alien skins
  */
 if (!argv.blog) {
   console.log('Blogname must be specified with --blog=blogname or -b blogname.');

@@ -25,9 +25,9 @@ const getIncomingData = function (body, response, resolveWithFullResponse) {
 };
 
 /**
- * Request-Promise sequence to update Twoday skin in the export layout
+ * Request-Promise sequence to update a Twoday skin of the alien layout
  * @param blog  string name of Twoday blog
- * @param story object
+ * @param skin  object
  *   name       string skin name, e.g. 'Site.page'
  *   content    string skin content
  */
