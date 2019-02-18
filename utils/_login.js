@@ -9,10 +9,15 @@ const request = require('request-promise-native');
 //request.debug = true; // uncomment to activate debugging
 require('dotenv-safe').load();
 
+//preset agreed cookie
+const jar = request.jar();
+const cookie = request.cookie('agreed=20190210a');
+jar.setCookie(cookie, 'https://www.twoday.net');
+
 // set some defaults
 const req = request.defaults({
   followAllRedirects: true,
-  jar: true,
+  jar,
   simple: false,
   rejectUnauthorized: false,
   resolveWithFullResponse: true
@@ -49,7 +54,7 @@ const loginTwoday = () => {
           'name': process.env.USER,
           'password': process.env.PASSWORD,
           'remember': 1,
-          'modSoruaAuthServerAuthUri': 'http://www.sorua.net/typekey',
+          //'modSoruaAuthServerAuthUri': 'http://www.sorua.net/typekey',
           'login': 'Anmelden'
         }
       });

@@ -17,23 +17,30 @@ class AlienInsideTwoday {
       titleField: 'title',
       publishedField: 'pubDate',
       commentsField: 'comments',
-      multiParts: ['commentUrl', 'comments'], // 0: alpha, 1: number
+      counterField: 'commentCount',
+      allowComments: true, // false=don't allow comments on Twoday
       pauseChecks: 1000 * 60 * 2, // pause 2 min in between checks
       syncStories: 3,
       colorAlias: '#13c4a5',
       colorNavIcon: '#13c4a5',
-      forceHttp: false,
       positionToast: 'toast-top-full-width',
       menuOffsetTop: 0,
       menuOffsetRight: 0,
       debug: false
     };
+    this.providerPostIdReg = {
+      wordpress: /\?p=([0-9]*)/,
+      nuxtjs: /\/([^\/]+)\/?$/,
+      blogger: /post-([0-9]*)/,
+      tumblr: /post\/([0-9]*)/
+    };
+    this.webtaskUrl = 'https://wt-061cbc2118e775aa9f3fe9182b7691db-0.sandbox.auth0-extend.com/getrss';
   }
 
   checkNewVersionAvailability() {
     let self = this;
 
-    $.getJSON('https://rawgit.com/NeonWilderness/tdalien/master/package.json', function (pkg) {
+    $.getJSON('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@master/package.json', function (pkg) {
       let thisVersion = self.parseVersion(document.body.dataset.version);
       if (self.parseVersion(pkg.version) > thisVersion) {
         $('#btnClose, #btnCancel').on('click', function (e) {
@@ -54,9 +61,33 @@ class AlienInsideTwoday {
     });
   }
 
+  /**
+   * Identifies the RSS origin (Wordpress, Tumblr, Blogger) and returns the appropriate RegEx
+   * to extract the post-id from the RSS items guid/id field 
+   * @param {string} generator RSS generator field
+   * @returns {RegExp} appropriate to the RSS origin or null if origin is unknown 
+   */
+  getFeedsPostIdSelector(generator) {
+    let provider = Object.keys(this.providerPostIdReg), origin = '', i = 0;
+    while (!origin && i < provider.length) {
+      let platform = provider[i];
+      if (generator.indexOf(platform) >= 0) origin = platform;
+      i++;
+    }
+    return (origin ? this.providerPostIdReg[origin] : null);
+  }
+
   getNewBlogAlias() {
     let alias = this.options.targetUrl.replace('www.', '').match(/https?:\/\/(.*?)\./i);
     return (alias ? alias[1] : '');
+  }
+
+  gotoStory(path) {
+    /* to be completed...
+    - $.get(location.pathname)
+    - parse JSON: json = JSON.parse($('.alienStatus').text())
+    - location = json.link
+    */
   }
 
   implant(options) {
@@ -66,8 +97,9 @@ class AlienInsideTwoday {
 
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
-    if (this.options.forceHttp && location.protocol === 'https:')
-      location.protocol = 'http:';
+    if (this.options.targetStory && /\/stories\/[0-9]*/.test(location.pathname)) {
+      this.gotoStory(location.pathname);
+    }
 
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
     if (this.options.colorAlias !== this.defaults.colorAlias)
@@ -172,63 +204,59 @@ class AlienInsideTwoday {
     return maySync;
   }
 
-  parseVersion(version) { 
+  parseVersion(version) {
     return parseInt(version.replace(/\./g, ''));
   }
 
   readAlienRSS() {
-    let yql = 'https://query.yahooapis.com/v1/public/yql?q=';
-    let query = `select ${this.options.titleField}, ${this.options.publishedField}${this.options.commentsField.length ? ', ' : ''}${this.options.commentsField} from rss where url="${urlJoin(this.options.targetUrl, this.options.rssFeedUrl, `?d=${new Date().getTime()}`)}"`;
-    let endpoint = `${yql}${encodeURIComponent(query)}&format=json&${encodeURIComponent('env=store://datatables.org/alltableswithkeys')}`;
-
     let self = this;
-    $.ajax({
-      type: "GET",
-      url: endpoint,
-      dataType: "json",
-      success: function (data) {
-        if (data.query.count > 0) { // [ { title, commentUrl, comments, published }, ... ]
-          let rssStories = self.readStoriesFromRssData(data.query.results.item);
-          if (self.options.debug) console.log('Parsed RSS stories: ', rssStories);
-          readStoriesSkin(rssStories);
-        }
+    $.getJSON(`${this.webtaskUrl}?url=${urlJoin(this.options.targetUrl, this.options.rssFeedUrl)}`, function (data) {
+      if (data.items && data.items.length > 0) {
+        let rssStories = self.readStoriesFromRssData(data);
+        if (self.options.debug) console.log('Parsed RSS stories: ', rssStories);
+        readStoriesSkin(rssStories, self.options);
       }
     })
       .fail(function (jqXHR, type, error) {
-        console.error(`YQL console error: ${type} | ${error}.`);
+        console.error(`Webtask getrss error: ${type} | ${error}.`);
       });
   }
 
   readStoriesFromRssData(json) {
-    let multiCommentFields = (this.options.multiParts.length > 1);
-    if (this.options.debug) console.log(`YQL JSON: ${JSON.stringify(json, null, 2)}`);
-    let rssStories = json.reduce((all, item) => {
+    if (this.options.debug) console.log(`Webtask getrss items: ${JSON.stringify(json, null, 2)}`);
+
+    let regexPostId = this.getFeedsPostIdSelector(json.generator);
+
+    let rssStories = json.items.reduce((all, item) => {
+
+      // get the unique post-id
+      let postid = '';
+      if (regexPostId) {
+        let s = item.guid || item.id;
+        let m = s.match(regexPostId);
+        if (m) postid = m[1];
+      }
 
       // eliminate seconds in published date
       let d = item[this.options.publishedField].split(':');
       d[d.length - 1] = '00 ' + d[d.length - 1].substr(3);
 
       let story = {
+        postid,
+        link: item.link || json.link,
+        contentSnippet: item.contentSnippet.replace(/(Read More|Weiterlesen)/gi, ''),
         title: item[this.options.titleField] || '...',
-        published: new Date(d.join(':'))
+        published: new Date(d.join(':')),
+        commentUrl: item[this.options.commentsField] || `${item.link}#comments`,
+        comments: item[this.options.counterField] || 0
       };
 
-      if (item.hasOwnProperty(this.options.commentsField)) { // supposed there is comments data
-        let theField = this.options.multiParts[0]; // 0: commentUrl, 1: comments
-        if (multiCommentFields && $.isNumeric(item[this.options.commentsField])) {
-          theField = this.options.multiParts[1];
-        }
-        story[theField] = item[this.options.commentsField];
-      }
-
-      all[story.published] =
-        (all.hasOwnProperty(story.published) ? Object.assign(story, all[story.published]) : story);
+      all.push(story);
       return all;
 
-    }, {});
+    }, []);
 
-    return Object.keys(rssStories)
-      .map(key => Object.assign({ comments: '0', commentUrl: '' }, rssStories[key]))
+    return rssStories
       .sort((a, b) => { return b.published.getTime() - a.published.getTime(); })
       .slice(0, this.options.syncStories);
   }

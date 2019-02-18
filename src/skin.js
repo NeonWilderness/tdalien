@@ -6,7 +6,17 @@
 const slugify = require('slugify');
 
 const alienStatus = (status) => {
-  return `<div class="alienStatus" style="display:none">${JSON.stringify(status, null, 2)}</div>`;
+  let clean = {
+    title: status.title,
+    published: status.published,
+    link: status.link,
+    comments: status.comments,
+    postid: status.postid    
+  };
+  let contentSnippet = status.contentSnippet || '...';
+  return `<p>${contentSnippet}</p>
+<div style="text-align:center"><a target="_blank" href="${status.link}">&raquo; Beitrag</a>&emsp;&emsp;<a target="_blank" href="${status.commentUrl}">&raquo; Kommentare</a></div>
+<div class="alienStatus" style="display:none">${JSON.stringify(clean, null, 2)}</div>`;
 };
 
 const xhrError = (when, which, xhr) => {
@@ -61,7 +71,6 @@ const readStoriesSkinContent = () => {
       let params = getSkinData(data);
       let skinStories = JSON.parse(params.skin);
       skinStories.forEach(story => { story.published = new Date(story.published); });
-      console.log('readStoriesSkinContent: ', skinStories);
       resolve({ params, skinStories });
     })
       .fail(() => {
@@ -85,21 +94,42 @@ const saveStoriesSkinContent = (params) => {
   });
 };
 
+/**
+ * Finds and returns all stories that have changed or a plain new
+ * @param {array} rssStories - story data from current RSS
+ * @param {array} skinStories - saved story data from last update run
+ * @returns {array} filtered stories (new or changed)
+ */
 const compareStories = (rssStories, skinStories) => {
 
+  const storyUnchanged = (rssStory, skinStory) => {
+    return (
+      rssStory.comments == skinStory.comments &&
+      rssStory.title == skinStory.title &&
+      rssStory.contentSnippet == skinStory.contentSnippet
+    );
+  };
+
+  const useKeyPostId = story => story.postid;
+  const useKeyPublished = story => story.published.getTime();
+
+  let useAsKey = (
+    rssStories.length &&
+    rssStories[0].postid.length &&
+    (skinStories.length === 0 || 
+      (skinStories.length && 'postid' in skinStories[0] && skinStories[0].postid.length)
+    ) ? useKeyPostId : useKeyPublished
+  );
+
   let checker = rssStories.reduce((all, story) => {
-    all[story.published.getTime()] = story;
+    all[useAsKey(story)] = story;
     return all;
   }, {});
 
   return skinStories.reduce((all, story) => {
-    let lookupKey = story.published.getTime();
-    if (all.hasOwnProperty(lookupKey)) {
-      if (!all[lookupKey].hasOwnProperty('comments'))
-        delete all[lookupKey];
-      else
-        if (all[lookupKey].comments == story.comments)
-          delete all[lookupKey];
+    let lookupKey = useAsKey(story);
+    if (all.hasOwnProperty(lookupKey) && storyUnchanged(all[lookupKey], story)) {
+      delete all[lookupKey];
     }
     return all;
   }, checker);
@@ -108,7 +138,7 @@ const compareStories = (rssStories, skinStories) => {
 
 const slugifyTitle = title => slugify(title || '...');
 
-const readStoriesMain = (changedOrNewStories) => {
+const readStoriesMain = (changedOrNewStories, options) => {
 
   return new Promise((resolve, reject) => {
     let xhr = $.get('/stories/main', function (data) {
@@ -118,12 +148,12 @@ const readStoriesMain = (changedOrNewStories) => {
         let [title, id] = this.innerText.split('|');
         let slug = slugifyTitle(title);
         tdStories[slug] = id;
-        console.log('title:', title, 'slug:', slug, 'id:', id);
+        if (options.debug) console.log('title:', title, 'slug:', slug, 'id:', id);
       });
       let finalStories = Object.keys(changedOrNewStories).reduce((all, key) => {
         let story = changedOrNewStories[key];
         let slug = slugifyTitle(story.title);
-        console.log('Searching slug:', slug, 'found:', tdStories.hasOwnProperty(slug));
+        if (options.debug) console.log('Searching slug:', slug, 'found:', tdStories.hasOwnProperty(slug));
         if (tdStories.hasOwnProperty(slug)) story.id = tdStories[slug];
         all.push(story);
         return all;
@@ -141,6 +171,7 @@ const readStoriesMain = (changedOrNewStories) => {
 
 const getFormData = (data) => {
   let $form = $(data).find('form');
+  let $discussions = $form.find('[name="discussions"]');
   return {
     secretKey: $form.find('[name="secretKey"]').val(),
     content_title: $form.find('[name="content_title"]').val(),
@@ -151,14 +182,14 @@ const getFormData = (data) => {
     addToTopic: $form.find('[name="addToTopic"]').val(),
     topic: $form.find('[name="topic"]').val(),
     editableby: $form.find('[name="editableby"]').val(),
-    discussions: $form.find('[name="discussions"]').val(),
+    discussions: ($discussions.prop('checked') ? $discussions.val() : null),
     checkbox_discussions: $form.find('[name="checkbox_discussions"]').val(),
     createtime: $form.find('[name="createtime"]').val(),
     publish: $form.find('[name="publish"]').val()
   };
 };
 
-const updateTwodayStory = (story) => {
+const updateTwodayStory = (story, options) => {
 
   return new Promise((resolve, reject) => {
 
@@ -177,6 +208,7 @@ const updateTwodayStory = (story) => {
       formData.content_title = story.title || '...';
       formData.content_text = $content.html();
       formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
+      if (formData.discussions == null) delete formData.discussions;
 
       xhr = $.post(storyEditUrl, formData, function () {
         toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday aktualisiert.`);
@@ -196,7 +228,7 @@ const updateTwodayStory = (story) => {
 
 };
 
-const createTwodayStory = (story) => {
+const createTwodayStory = (story, options) => {
 
   return new Promise((resolve, reject) => {
 
@@ -208,6 +240,7 @@ const createTwodayStory = (story) => {
       formData.content_title = story.title || '...';
       formData.content_text = alienStatus(story);
       formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
+      if (!options.allowComments) delete formData.discussions;
 
       xhr = $.post(storyCreateUrl, formData, function () {
         toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday neu angelegt.`);
@@ -227,26 +260,27 @@ const createTwodayStory = (story) => {
 
 };
 
-const readStoriesSkin = (rssStories) => {
+const readStoriesSkin = (rssStories, options) => {
   var skinParams = {};
 
   readStoriesSkinContent()
     .then(({ params, skinStories }) => {
+      if (options.debug) console.log('readStoriesSkinContent: ', skinStories);
       skinParams = params;
       const changedOrNewStories = compareStories(rssStories, skinStories);
       if (Object.keys(changedOrNewStories).length > 0)
-        return readStoriesMain(changedOrNewStories);
+        return readStoriesMain(changedOrNewStories, options);
       else
         return Promise.resolve([]);
     })
     .then(finalStories => {
-      console.log('finalStories: ', finalStories);
+      if (options.debug) console.log('finalStories: ', finalStories);
       if (finalStories && finalStories.length) {
         let promises = finalStories.map(story => {
           if (story.hasOwnProperty('id'))
-            return updateTwodayStory(story);
+            return updateTwodayStory(story, options);
           else
-            return createTwodayStory(story);
+            return createTwodayStory(story, options);
         });
         return Promise.all(promises);
       } else {
@@ -269,7 +303,7 @@ const readStoriesSkin = (rssStories) => {
     );
 };
 
-module.exports = {
+export {
   readStoriesSkin,
   readStoriesSkinContent,
   saveStoriesSkinContent,
