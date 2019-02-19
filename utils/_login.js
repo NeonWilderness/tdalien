@@ -4,25 +4,7 @@
  * 
  */
 const cheerio = require('cheerio');
-const request = require('request-promise-native');
-
-//request.debug = true; // uncomment to activate debugging
-require('dotenv-safe').load();
-
-//preset agreed cookie
-const jar = request.jar();
-const cookie = request.cookie('agreed=20190210a');
-jar.setCookie(cookie, 'https://www.twoday.net');
-
-// set some defaults
-const req = request.defaults({
-  followAllRedirects: true,
-  jar,
-  simple: false,
-  rejectUnauthorized: false,
-  resolveWithFullResponse: true
-});
-
+const { req } = require('./_acceptTerms');
 const loginUrl = 'https://www.twoday.net/members/login';
 
 /**
@@ -43,7 +25,7 @@ const loginTwoday = () => {
     url: loginUrl,
     transform: getSecretKey
   })
-    .then((secretKey) => {
+    .then(secretKey => {
       return req.post({
         url: loginUrl,
         form: {
@@ -54,14 +36,13 @@ const loginTwoday = () => {
           'name': process.env.USER,
           'password': process.env.PASSWORD,
           'remember': 1,
-          //'modSoruaAuthServerAuthUri': 'http://www.sorua.net/typekey',
           'login': 'Anmelden'
         }
       });
     })
-    .catch(function (err) {
+    .catch(err => {
       console.log('Login failed with error:', err);
     });
 };
 
-module.exports = { req, getSecretKey, loginTwoday };
+module.exports = { getSecretKey, loginTwoday };

@@ -3,7 +3,7 @@
  * ======================================================
  * 
  */
-const { req } = require('./_login');
+const { req } = require('./_acceptTerms');
 const cheerio = require('cheerio');
 
 /**
@@ -27,7 +27,7 @@ const getMemberships = () => {
       return adminBlogs;
     }
   })
-  .catch( (err) => {
+  .catch(err => {
     console.log('getMemberships failed with error:', err);
   });
 };

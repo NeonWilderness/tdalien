@@ -5,6 +5,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { acceptTerms } = require('./_acceptTerms');
 const { loginTwoday } = require('./_login');
 const getMemberships = require('./_getMemberships');
 const updateSkin = require('./_updateSkin');
@@ -18,7 +19,11 @@ if (!argv.blog) {
   return;
 }
 let blog = argv.blog.toLowerCase();
-loginTwoday()
+acceptTerms()
+  .then(() => {
+    console.log('Terms accepted. Now logging in...');
+    return loginTwoday();
+  })
   .then(() => {
     console.log('Successfully logged into Twoday. Checking Memberships...');
     return getMemberships();
@@ -39,6 +44,6 @@ loginTwoday()
       content: `<script>${js}</script>`
     })
   })
-  .catch(function (err) {
+  .catch(err => {
     console.log('Update ***failed*** for blog:', blog, 'with Error', err);
   });

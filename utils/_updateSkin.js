@@ -3,7 +3,7 @@
  * ============================================
  * 
  */
-const { req } = require('./_login');
+const { req } = require('./_acceptTerms');
 const cheerio = require('cheerio');
 const getAlienLayoutUrl = require('./_getAlienLayoutUrl');
 
@@ -32,7 +32,7 @@ const getIncomingData = function (body, response, resolveWithFullResponse) {
  *   content    string skin content
  */
 const updateSkin = (blog, skin) => {
-  let skinEditUrl = `${getAlienLayoutUrl(blog)}skins/edit?key=${skin.name}`;
+  let skinEditUrl = `${getAlienLayoutUrl(blog)}skins/edit?key=${skin.name}&skinset=&action=modified&module=`;
   console.log(`Preparing to edit skin at ${skinEditUrl}`);
   req.get({
     uri: skinEditUrl,
@@ -58,7 +58,7 @@ const updateSkin = (blog, skin) => {
     .then(() => {
       console.log(`Update successfully completed for skin: ${skin.name}`);
     })
-    .catch((err) => {
+    .catch(err => {
       console.log('Update ***failed*** for skin:', skin.name, 'with error', err);
     });
 };
