@@ -40,7 +40,7 @@ class AlienInsideTwoday {
   checkNewVersionAvailability() {
     let self = this;
 
-    $.getJSON('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@master/package.json', function (pkg) {
+    $.getJSON('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@latest/package.json', function (pkg) {
       let thisVersion = self.parseVersion(document.body.dataset.version);
       if (self.parseVersion(pkg.version) > thisVersion) {
         $('#btnClose, #btnCancel').on('click', function (e) {
