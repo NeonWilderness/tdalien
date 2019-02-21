@@ -21,6 +21,7 @@ class AlienInsideTwoday {
       allowComments: true, // false=don't allow comments on Twoday
       pauseChecks: 1000 * 60 * 2, // pause 2 min in between checks
       syncStories: 3,
+      targetStory: true, // false=always jump to homepage, go directly to story if possible
       colorAlias: '#13c4a5',
       colorNavIcon: '#13c4a5',
       positionToast: 'toast-top-full-width',
@@ -82,12 +83,23 @@ class AlienInsideTwoday {
     return (alias ? alias[1] : '');
   }
 
-  gotoStory(path) {
-    /* to be completed...
-    - $.get(location.pathname)
-    - parse JSON: json = JSON.parse($('.alienStatus').text())
-    - location = json.link
-    */
+  /**
+   * Reads story and parses alienStatus to directly navigate to the original story link
+   * @param {string} storyUrl 
+   * @returns void
+   */
+  gotoStory(storyUrl) {
+   $.get(storyUrl, function(html){
+    let status = $(html).find('.alienStatus').text();
+    if (status) { 
+      try {
+        let statusParsed = JSON.parse(status);
+        window.location = statusParsed.link;
+      } catch(err) {
+        console.log(`Error parsing alienStatus of "${storyUrl}": ${err}.`);
+      }
+    }
+   });
   }
 
   implant(options) {
@@ -97,8 +109,11 @@ class AlienInsideTwoday {
 
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
-    if (this.options.targetStory && /\/stories\/[0-9]*/.test(location.pathname)) {
-      this.gotoStory(location.pathname);
+    let path = location.pathname.toLowerCase();
+    if (this.options.targetStory && /\/stories\//.test(path)) {
+      let pathParts = path.split('/');
+      let storyUrl = (pathParts.slice(0, pathParts.indexOf('stories')+2)).join('/');
+      this.gotoStory(storyUrl);
     }
 
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
