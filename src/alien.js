@@ -22,6 +22,8 @@ class AlienInsideTwoday {
       pauseChecks: 1000 * 60 * 2, // pause 2 min in between checks
       syncStories: 3,
       targetStory: true, // false=always jump to homepage, go directly to story if possible
+      titlePrefix: '',
+      titlePostfix: ' - \u2709 $comments',
       colorAlias: '#13c4a5',
       colorNavIcon: '#13c4a5',
       positionToast: 'toast-top-full-width',

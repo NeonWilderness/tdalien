@@ -189,6 +189,12 @@ const getFormData = (data) => {
   };
 };
 
+const compileStoryTitle = (title, comments, options) => {
+  let prefix = options.titlePrefix.replace('$comments', comments);
+  let postfix = options.titlePostfix.replace('$comments', comments);
+  return `${prefix}${title || '...'}${postfix}`;
+};
+
 const updateTwodayStory = (story, options) => {
 
   return new Promise((resolve, reject) => {
@@ -205,7 +211,7 @@ const updateTwodayStory = (story, options) => {
         $alienStatus.text(JSON.stringify(story, null, 2));
       else
         $content.append(alienStatus(story));
-      formData.content_title = story.title || '...';
+      formData.content_title = compileStoryTitle(story.title, story.comments, options);
       formData.content_text = $content.html();
       formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
       if (formData.discussions == null) delete formData.discussions;
@@ -237,7 +243,7 @@ const createTwodayStory = (story, options) => {
 
       story.alienLastUpdate = new Date().toISOString();
       let formData = getFormData(data);
-      formData.content_title = story.title || '...';
+      formData.content_title = compileStoryTitle(story.title, story.comments, options);
       formData.content_text = alienStatus(story);
       formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
       if (!options.allowComments) delete formData.discussions;

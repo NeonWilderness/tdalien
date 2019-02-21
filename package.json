@@ -1,6 +1,6 @@
 {
   "name": "alienlayout",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Twoday Alien Template to host a foreign Wordpress site",
   "main": "alien.html",
   "repository": {
