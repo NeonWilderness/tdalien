@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## unreleased
 ### Added
+- Added display of tool version (release number) at the end of the embedded tool menu
 - Added option "delayNewRelease" (milliseconds). Specifies the time, the update process for a new release should be delayed, before the script asks again, if the user wants to upgrade. Example:
 ``` 
   ...
