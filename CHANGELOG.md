@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## unreleased
+### Added
+- Added option "delayNewRelease" (milliseconds). Specifies the time, the update process for a new release should be delayed, before the script asks again, if the user wants to upgrade. Example:
+``` 
+  ...
+  delayNewRelease: 1000*60*60*24*2, // ask user again in 2 days
+  ...
+```
+
 ## [1.6.0] - 2019-02-21
 ### Added
 - Added this changelog file
@@ -16,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 Based on a story title "New release out", which has 5 comments on the external blog, this would result in the following string being displayed on the Twoday blogroll:
 
-<b>> New Release out - ✉ 5 **</b>
+<b>> New Release out - ✉ 5</b>
 
 With this solution, the number of comments are now being displayed on the blogroll and will be changed everytime the comment counter changes.
 
