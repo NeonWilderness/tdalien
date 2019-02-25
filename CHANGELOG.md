@@ -4,15 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## unreleased
+## [1.7.0] - 2019-02-25
 ### Added
 - Added display of tool version (release number) at the end of the embedded tool menu
+- Added cleanup function for duplicate identical stories
 - Added option "delayNewRelease" (milliseconds). Specifies the time, the update process for a new release should be delayed, before the script asks again, if the user wants to upgrade. Example:
 ``` 
   ...
   delayNewRelease: 1000*60*60*24*2, // ask user again in 2 days
   ...
 ```
+### Changed
+- Use publish date instead of title text to match up stories from RSS
+- Shortened HTML code of Skin Story.mgrlistitem
+
+### Removed
+- Remove slugify NPM module (not used anymore)
 
 ## [1.6.0] - 2019-02-21
 ### Added

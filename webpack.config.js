@@ -30,7 +30,7 @@ module.exports = {
             loader: 'string-replace-loader',
             options: {
               multiple: [
-                { search: '{{version}}', replace: getPackageVersion() }
+                { search: '{{version}}', replace: getPackageVersion(), flags: 'g' }
               ]
             }
           }

@@ -3,8 +3,6 @@
  * ======================================================================
  * 
  */
-const slugify = require('slugify');
-
 const alienStatus = (status) => {
   let clean = {
     title: status.title,
@@ -21,6 +19,36 @@ const alienStatus = (status) => {
 
 const xhrError = (when, which, xhr) => {
   toastr.error(`Fehler beim ${when} von ${which}: ${xhr.status} | ${xhr.statustext}.`);
+};
+
+const cleanupDuplicateStory = (id, options) => {
+
+  return new Promise((resolve, reject) => {
+
+    let cleanupUrl = `/stories/${id}/delete`;
+    let xhr = $.get(cleanupUrl, function (data) {
+      let $form = $(data).find('form');
+      let formData = {
+        secretKey: $form.find('[name=secretKey]').val(),
+        remove: 'Löschen'
+      };
+
+      xhr = $.post(cleanupUrl, formData, function () {
+        if (options.debug) console.log(`Duplicate story ${id} was successfully removed.`);
+        resolve();
+      })
+        .fail(() => {
+          xhrError('Entfernen(post)', `Twoday-Beitrag ${id}`, xhr);
+          reject();
+        });
+    })
+      .fail(() => {
+        xhrError('Lesen(get)', `Twoday-Beitrag ${id}`, xhr);
+        reject();
+      });
+
+  });
+
 };
 
 const getSkinData = (data) => {
@@ -136,8 +164,6 @@ const compareStories = (rssStories, skinStories) => {
 
 };
 
-const slugifyTitle = title => slugify(title || '...');
-
 const readStoriesMain = (changedOrNewStories, options) => {
 
   return new Promise((resolve, reject) => {
@@ -145,16 +171,22 @@ const readStoriesMain = (changedOrNewStories, options) => {
       let tdStories = {};
       let $admin = $(data).find('.admin');
       $admin.find('.storyData').each(function () {
-        let [title, id] = this.innerText.split('|');
-        let slug = slugifyTitle(title);
-        tdStories[slug] = id;
-        if (options.debug) console.log('title:', title, 'slug:', slug, 'id:', id);
+        let [title, id, pubDate] = this.innerText.split('|');
+        let pubInt = new Date(pubDate).getTime();
+        if (pubInt in tdStories) {
+          options.cleanup.push(tdStories[pubInt]); // save ID for later delete
+          if (options.debug) console.log(`Duplicate story id detected: ${tdStories[pubInt]}`);
+        }
+        tdStories[pubInt] = id;
+        if (options.debug) 
+          console.log(`storyData> title: ${title}, pubDate: ${pubDate} (${pubInt}), id: ${id}`);
       });
       let finalStories = Object.keys(changedOrNewStories).reduce((all, key) => {
         let story = changedOrNewStories[key];
-        let slug = slugifyTitle(story.title);
-        if (options.debug) console.log('Searching slug:', slug, 'found:', tdStories.hasOwnProperty(slug));
-        if (tdStories.hasOwnProperty(slug)) story.id = tdStories[slug];
+        let published = story.published.getTime();
+        if (options.debug) 
+          console.log(`Searching story: ${story.title}, published: ${story.published} (${published}), found: ${tdStories.hasOwnProperty(published)}`);
+        if (tdStories.hasOwnProperty(published)) story.id = tdStories[published];
         all.push(story);
         return all;
       }, []);
@@ -221,12 +253,12 @@ const updateTwodayStory = (story, options) => {
         resolve();
       })
         .fail(() => {
-          xhrError('Update(post)', `Twoday-Beitrags ${story.id}`, xhr);
+          xhrError('Update(post)', `Twoday-Beitrag ${story.id}`, xhr);
           reject();
         });
     })
       .fail(() => {
-        xhrError('Update(get)', `Twoday-Beitrags ${story.id}`, xhr);
+        xhrError('Update(get)', `Twoday-Beitrag ${story.id}`, xhr);
         reject();
       });
 
@@ -253,12 +285,12 @@ const createTwodayStory = (story, options) => {
         resolve();
       })
         .fail(() => {
-          xhrError('Anlegen(post)', `Twoday-Beitrags ${story.id}`, xhr);
+          xhrError('Anlegen(post)', `Twoday-Beitrag ${story.id}`, xhr);
           reject();
         });
     })
       .fail(() => {
-        xhrError('Anlegen(get)', `Twoday-Beitrags ${story.id}`, xhr);
+        xhrError('Anlegen(get)', `Twoday-Beitrag ${story.id}`, xhr);
         reject();
       });
 
@@ -268,6 +300,7 @@ const createTwodayStory = (story, options) => {
 
 const readStoriesSkin = (rssStories, options) => {
   var skinParams = {};
+  options.cleanup = [];
 
   readStoriesSkinContent()
     .then(({ params, skinStories }) => {
@@ -300,6 +333,13 @@ const readStoriesSkin = (rssStories, options) => {
         skinParams.skin = newSkinContent;
         return saveStoriesSkinContent(skinParams);
       } else return Promise.resolve();
+    })
+    .then(() => {
+      if (options.cleanup.length) {
+        return Promise.all(options.cleanup.map(id => cleanupDuplicateStory(id, options)));
+      } else {
+        return Promise.resolve();
+      }
     })
     .then(() => {
       toastr.success('Synchronisation erfolgreich abgeschlossen.');

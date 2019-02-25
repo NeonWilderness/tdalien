@@ -29,6 +29,7 @@ class AlienInsideTwoday {
       positionToast: 'toast-top-full-width',
       menuOffsetTop: 0,
       menuOffsetRight: 0,
+      delayNewRelease: 1000 * 60 * 60 * 24 * 2, // delay new release update process/message for 2 days
       debug: false
     };
     this.providerPostIdReg = {
@@ -41,6 +42,9 @@ class AlienInsideTwoday {
   }
 
   checkNewVersionAvailability() {
+    let delayRelease = localStorage.getItem('delayAlienRelease');
+    if (delayRelease && (Date.now() <= delayRelease)) return;
+
     let self = this;
 
     $.getJSON('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@latest/package.json', function (pkg) {
@@ -49,6 +53,10 @@ class AlienInsideTwoday {
         $('#btnClose, #btnCancel').on('click', function (e) {
           e.preventDefault();
           $('#newVersion').fadeOut();
+          if (e.target.id === 'btnClose') { // User clicked "not now!"
+            let delayUntil = Date.now() + self.options.delayNewRelease;
+            localStorage.setItem('delayAlienRelease', delayUntil);            
+          }
         });
         $('#btnUpdate').on('click', function (e) {
           e.preventDefault();

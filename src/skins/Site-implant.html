@@ -1,0 +1,55 @@
+<script>$(function(){
+  $.fn.alien().implant({
+
+    // URL Ihres Zielblogs (z.B. Wordpress) setzen; empfohlen: https-Adresse!
+    targetUrl: 'https://die-netzialisten.de',
+
+    // URL-Teil des RSS Feeds
+    rssFeedUrl: 'feed',
+
+    // RSS-Feldname für Kommentarinformationen
+    commentsField: 'comments',
+
+    // Erlaube Kommentare auf Twoday für extern eingespielte Beiträge (true = ja, false = nein)
+    allowComments: true,
+
+    // Farbe des Blog-Alias neben dem Icon (linke obere Ecke)
+    colorAlias: '#cb405c',
+
+    // Farbe des "Hamburger" Icons (rechte oberen Ecke)
+    colorNavIcon: '#cb405c',
+
+    // Vertikales Offset des Hamburger-Icons vom oberen Rand (Pixel)
+    menuOffsetTop: 0,
+
+    // Horizontales Offset des Hamburger-Icons vom rechten Rand (Pixel)
+    menuOffsetRight: 0,
+
+    // Pause zwischen den Updateprüfungen in Millisekunden (default: 2 Minuten)
+    pauseChecks: 1000*60*2,
+
+    // Anzahl der maximal zu synchronisierenden Beiträge (0=Keine Synchronisation)
+    syncStories: 3,
+
+    // Klick auf Beitrag in der Twoday-Blogroll springt direkt zum Artikel (true = zum Artikel, false = zur Homepage)
+    targetStory: true,
+
+    // Prefix für den Beitragstitel in der Blogroll
+    titlePrefix: '',
+
+    // Postfix für den Beitragstitel in der Blogroll
+    titlePostfix: ' - \u2709 $comments',
+
+    // Position der Nachrichten für den Admin des Blogs; mögliche Werte siehe
+    // http://codeseven.github.io/toastr/demo.html unter dem Feld "Position".
+    // Beispiel: rechte untere Ecke wäre 'toast-bottom-right'.
+    positionToast: 'toast-top-full-width',
+
+    // Pausiere nächste Anfrage für Releaseaktualisierung (default: 2 Tage)
+    delayNewRelease: 1000*60*60*24*2,
+
+    // Debug-Schalter (true = Ausgabe zusätzlicher Konsol-Nachrichten)
+    debug: false
+
+  });
+});</script>
