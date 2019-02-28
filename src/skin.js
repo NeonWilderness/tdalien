@@ -21,36 +21,6 @@ const xhrError = (when, which, xhr) => {
   toastr.error(`Fehler beim ${when} von ${which}: ${xhr.status} | ${xhr.statustext}.`);
 };
 
-const cleanupDuplicateStory = (id, options) => {
-
-  return new Promise((resolve, reject) => {
-
-    let cleanupUrl = `/stories/${id}/delete`;
-    let xhr = $.get(cleanupUrl, function (data) {
-      let $form = $(data).find('form');
-      let formData = {
-        secretKey: $form.find('[name=secretKey]').val(),
-        remove: 'Löschen'
-      };
-
-      xhr = $.post(cleanupUrl, formData, function () {
-        if (options.debug) console.log(`Duplicate story ${id} was successfully removed.`);
-        resolve();
-      })
-        .fail(() => {
-          xhrError('Entfernen(post)', `Twoday-Beitrag ${id}`, xhr);
-          reject();
-        });
-    })
-      .fail(() => {
-        xhrError('Lesen(get)', `Twoday-Beitrag ${id}`, xhr);
-        reject();
-      });
-
-  });
-
-};
-
 const getSkinData = (data) => {
   let $form = $(data).find('form');
   return {
@@ -97,7 +67,7 @@ const readStoriesSkinContent = () => {
   return new Promise((resolve, reject) => {
     let xhr = $.get(`/layouts/alien/skins/edit?key=Site.stories`, function (data) {
       let params = getSkinData(data);
-      let skinStories = JSON.parse(params.skin);
+      let skinStories = JSON.parse(params.skin || '[]');
       skinStories.forEach(story => { story.published = new Date(story.published); });
       resolve({ params, skinStories });
     })
@@ -128,34 +98,30 @@ const saveStoriesSkinContent = (params) => {
  * @param {array} skinStories - saved story data from last update run
  * @returns {array} filtered stories (new or changed)
  */
-const compareStories = (rssStories, skinStories) => {
+const compareStories = (rssStories, skinStories, options) => {
 
   const storyUnchanged = (rssStory, skinStory) => {
+    if (options.debug) { 
+      let rss = { title: rssStory.title, comments: rssStory.comments, snippet: rssStory.contentSnippet };
+      let skin = { title: skinStory.title, comments: skinStory.comments, snippet: skinStory.contentSnippet };
+      console.table({ rss, skin });
+    }
     return (
-      rssStory.comments == skinStory.comments &&
-      rssStory.title == skinStory.title &&
-      rssStory.contentSnippet == skinStory.contentSnippet
+      rssStory.comments === skinStory.comments &&
+      rssStory.title === skinStory.title &&
+      rssStory.contentSnippet === skinStory.contentSnippet
     );
   };
 
-  const useKeyPostId = story => story.postid;
-  const useKeyPublished = story => story.published.getTime();
-
-  let useAsKey = (
-    rssStories.length &&
-    rssStories[0].postid.length &&
-    (skinStories.length === 0 || 
-      (skinStories.length && 'postid' in skinStories[0] && skinStories[0].postid.length)
-    ) ? useKeyPostId : useKeyPublished
-  );
+  if (options.debug) console.log('=> Story comparison rss/skin:');
 
   let checker = rssStories.reduce((all, story) => {
-    all[useAsKey(story)] = story;
+    all[story.published.getTime()] = story;
     return all;
   }, {});
 
   return skinStories.reduce((all, story) => {
-    let lookupKey = useAsKey(story);
+    let lookupKey = story.published.getTime();
     if (all.hasOwnProperty(lookupKey) && storyUnchanged(all[lookupKey], story)) {
       delete all[lookupKey];
     }
@@ -173,13 +139,9 @@ const readStoriesMain = (changedOrNewStories, options) => {
       $admin.find('.storyData').each(function () {
         let [title, id, pubDate] = this.innerText.split('|');
         let pubInt = new Date(pubDate).getTime();
-        if (pubInt in tdStories) {
-          options.cleanup.push(tdStories[pubInt]); // save ID for later delete
-          if (options.debug) console.log(`Duplicate story id detected: ${tdStories[pubInt]}`);
-        }
         tdStories[pubInt] = id;
         if (options.debug) 
-          console.log(`storyData> title: ${title}, pubDate: ${pubDate} (${pubInt}), id: ${id}`);
+          console.log(`storyData> title: ${title}, pubDate: ${pubDate}(${pubInt}), id: ${id}`);
       });
       let finalStories = Object.keys(changedOrNewStories).reduce((all, key) => {
         let story = changedOrNewStories[key];
@@ -221,76 +183,65 @@ const getFormData = (data) => {
   };
 };
 
+const properDateFormat = (date) => {
+  // formats date to "dd.mm.yyyy, hh:mm"
+  let s = date.toLocaleString('de-DE', {
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit'
+  });
+  // reformats date to "yyyy-mm-dd hh:mm"
+  return s.substr(0,10).split('.').reverse().join('-') + s.substr(-6);
+};
+
 const compileStoryTitle = (title, comments, options) => {
   let prefix = options.titlePrefix.replace('$comments', comments);
   let postfix = options.titlePostfix.replace('$comments', comments);
   return `${prefix}${title || '...'}${postfix}`;
 };
 
-const updateTwodayStory = (story, options) => {
+const createOrUpdateTwodayStory = (story, options) => {
+
+  const params = {
+    // isCreate=false (Aktualisierung)
+    false: {
+      url: `/stories/${story.id}/edit`,
+      text: 'aktualisiert',
+      method: 'update'
+    },
+    // isCreate=true (Neuanlage)
+    true: {
+      url: '/stories/create',
+      text: 'neu angelegt',
+      method: 'create'
+    },
+  };
+  const isCreate = !story.hasOwnProperty('id');
 
   return new Promise((resolve, reject) => {
 
-    let storyEditUrl = `/stories/${story.id}/edit`;
-    let xhr = $.get(storyEditUrl, function (data) {
-
-      story.alienLastUpdate = new Date().toISOString();
-      let formData = getFormData(data);
-
-      let $content = $(`<div>${formData.content_text}</div>`);
-      let $alienStatus = $content.find('.alienStatus');
-      if ($alienStatus.length)
-        $alienStatus.text(JSON.stringify(story, null, 2));
-      else
-        $content.append(alienStatus(story));
-      formData.content_title = compileStoryTitle(story.title, story.comments, options);
-      formData.content_text = $content.html();
-      formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
-      if (formData.discussions == null) delete formData.discussions;
-
-      xhr = $.post(storyEditUrl, formData, function () {
-        toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday aktualisiert.`);
-        resolve();
-      })
-        .fail(() => {
-          xhrError('Update(post)', `Twoday-Beitrag ${story.id}`, xhr);
-          reject();
-        });
-    })
-      .fail(() => {
-        xhrError('Update(get)', `Twoday-Beitrag ${story.id}`, xhr);
-        reject();
-      });
-
-  });
-
-};
-
-const createTwodayStory = (story, options) => {
-
-  return new Promise((resolve, reject) => {
-
-    let storyCreateUrl = `/stories/create`;
-    let xhr = $.get(storyCreateUrl, function (data) {
+    let xhr = $.get(params[isCreate].url, function (data) {
 
       story.alienLastUpdate = new Date().toISOString();
       let formData = getFormData(data);
       formData.content_title = compileStoryTitle(story.title, story.comments, options);
       formData.content_text = alienStatus(story);
-      formData.createtime = `${story.published.toISOString().substr(0, 10)} ${story.published.toTimeString().substr(0, 5)}`;
-      if (!options.allowComments) delete formData.discussions;
+      formData.createtime = properDateFormat(story.published);
+      if (!options.allowComments || formData.discussions == null) delete formData.discussions;
 
-      xhr = $.post(storyCreateUrl, formData, function () {
-        toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday neu angelegt.`);
+      xhr = $.post(params[isCreate].url, formData, function () {
+        toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday ${params[isCreate].text}.`);
         resolve();
       })
         .fail(() => {
-          xhrError('Anlegen(post)', `Twoday-Beitrag ${story.id}`, xhr);
+          xhrError(`${params[isCreate].method}(POST)`, `Twoday-Beitrag "${story.title}"`, xhr);
           reject();
         });
     })
       .fail(() => {
-        xhrError('Anlegen(get)', `Twoday-Beitrag ${story.id}`, xhr);
+        xhrError(`${params[isCreate].method}(GET)`, `Twoday-Beitrag "${story.title}"`, xhr);
         reject();
       });
 
@@ -300,13 +251,12 @@ const createTwodayStory = (story, options) => {
 
 const readStoriesSkin = (rssStories, options) => {
   var skinParams = {};
-  options.cleanup = [];
 
   readStoriesSkinContent()
     .then(({ params, skinStories }) => {
       if (options.debug) console.log('readStoriesSkinContent: ', skinStories);
       skinParams = params;
-      const changedOrNewStories = compareStories(rssStories, skinStories);
+      const changedOrNewStories = compareStories(rssStories, skinStories, options);
       if (Object.keys(changedOrNewStories).length > 0)
         return readStoriesMain(changedOrNewStories, options);
       else
@@ -315,12 +265,7 @@ const readStoriesSkin = (rssStories, options) => {
     .then(finalStories => {
       if (options.debug) console.log('finalStories: ', finalStories);
       if (finalStories && finalStories.length) {
-        let promises = finalStories.map(story => {
-          if (story.hasOwnProperty('id'))
-            return updateTwodayStory(story, options);
-          else
-            return createTwodayStory(story, options);
-        });
+        let promises = finalStories.map(story => createOrUpdateTwodayStory(story, options));
         return Promise.all(promises);
       } else {
         toastr.info('Keine neuen zu synchronisierenden Änderungen gefunden!');
@@ -333,13 +278,6 @@ const readStoriesSkin = (rssStories, options) => {
         skinParams.skin = newSkinContent;
         return saveStoriesSkinContent(skinParams);
       } else return Promise.resolve();
-    })
-    .then(() => {
-      if (options.cleanup.length) {
-        return Promise.all(options.cleanup.map(id => cleanupDuplicateStory(id, options)));
-      } else {
-        return Promise.resolve();
-      }
     })
     .then(() => {
       toastr.success('Synchronisation erfolgreich abgeschlossen.');

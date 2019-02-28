@@ -48,8 +48,7 @@ class AlienInsideTwoday {
     let self = this;
 
     $.getJSON('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@latest/package.json', function (pkg) {
-      let thisVersion = self.parseVersion(document.body.dataset.version);
-      if (self.parseVersion(pkg.version) > thisVersion) {
+      if (self.parseVersion(pkg.version) > self.options.version) {
         $('#btnClose, #btnCancel').on('click', function (e) {
           e.preventDefault();
           $('#newVersion').fadeOut();
@@ -116,6 +115,7 @@ class AlienInsideTwoday {
 
     this.options = Object.assign({}, this.defaults, options);
     this.options.newBlogAlias = this.getNewBlogAlias();
+    this.options.version = this.parseVersion(document.body.dataset.version);
 
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
@@ -269,7 +269,7 @@ class AlienInsideTwoday {
       let story = {
         postid,
         link: item.link || json.link,
-        contentSnippet: item.contentSnippet.replace(/(Read More|Weiterlesen)/gi, ''),
+        contentSnippet: item.contentSnippet.replace(/ Werbeanzeigen/gi, ''),
         title: item[this.options.titleField] || '...',
         published: new Date(d.join(':')),
         commentUrl: item[this.options.commentsField] || `${item.link}#comments`,

@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2019-02-28
+### Added
+- Added script version to debug log
+- Added removal of wordpress.com marketing text being randomly issued as part of the RSS feed (contentSnippet)
+- Added more debug logging to the story matching process
+
+### Changed
+- Avoid error when skin site.stories is entirely empty (JSON parse error)
+- Use article creation date/time as sole source of truth for matching external stories to Twoday stories
+- Use proper date/time conversion while considering timezone differences
+- Simplify and harmonize the createStory/updateStory functions
+
+### Removed
+- Removed temporary cleanup of duplicate stories
+
 ## [1.7.0] - 2019-02-25
 ### Added
 - Added display of tool version (release number) at the end of the embedded tool menu
