@@ -138,14 +138,14 @@ const readStoriesMain = (changedOrNewStories, options) => {
       let $admin = $(data).find('.admin');
       $admin.find('.storyData').each(function () {
         let [title, id, pubDate] = this.innerText.split('|');
-        let pubInt = new Date(pubDate).getTime();
+        let pubInt = new Date(pubDate).getTime().toString();
         tdStories[pubInt] = id;
         if (options.debug) 
           console.log(`storyData> title: ${title}, pubDate: ${pubDate}(${pubInt}), id: ${id}`);
       });
       let finalStories = Object.keys(changedOrNewStories).reduce((all, key) => {
         let story = changedOrNewStories[key];
-        let published = story.published.getTime();
+        let published = story.published.getTime().toString();
         if (options.debug) 
           console.log(`Searching story: ${story.title}, published: ${story.published} (${published}), found: ${tdStories.hasOwnProperty(published)}`);
         if (tdStories.hasOwnProperty(published)) story.id = tdStories[published];
