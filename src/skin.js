@@ -116,12 +116,12 @@ const compareStories = (rssStories, skinStories, options) => {
   if (options.debug) console.log('=> Story comparison rss/skin:');
 
   let checker = rssStories.reduce((all, story) => {
-    all[story.published.getTime()] = story;
+    all[properDateFormat(story.published)] = story;
     return all;
   }, {});
 
   return skinStories.reduce((all, story) => {
-    let lookupKey = story.published.getTime();
+    let lookupKey = properDateFormat(story.published);
     if (all.hasOwnProperty(lookupKey) && storyUnchanged(all[lookupKey], story)) {
       delete all[lookupKey];
     }
@@ -138,16 +138,15 @@ const readStoriesMain = (changedOrNewStories, options) => {
       let $admin = $(data).find('.admin');
       $admin.find('.storyData').each(function () {
         let [title, id, pubDate] = this.innerText.split('|');
-        let pubInt = new Date(pubDate).getTime().toString();
-        tdStories[pubInt] = id;
+        pubDate = pubDate.trim();
+        tdStories[pubDate] = id;
         if (options.debug) 
-          console.log(`storyData> title: ${title}, pubDate: ${pubDate}(${pubInt}), id: ${id}`);
+          console.log(`storyData> title: ${title}, pubDate: ${pubDate}, id: ${id}`);
       });
-      let finalStories = Object.keys(changedOrNewStories).reduce((all, key) => {
-        let story = changedOrNewStories[key];
-        let published = story.published.getTime().toString();
+      let finalStories = Object.keys(changedOrNewStories).reduce((all, published) => {
+        let story = changedOrNewStories[published];
         if (options.debug) 
-          console.log(`Searching story: ${story.title}, published: ${story.published} (${published}), found: ${tdStories.hasOwnProperty(published)}`);
+          console.log(`Searching story: ${story.title}, published: ${published}, found: ${tdStories.hasOwnProperty(published)}`);
         if (tdStories.hasOwnProperty(published)) story.id = tdStories[published];
         all.push(story);
         return all;
@@ -193,7 +192,7 @@ const properDateFormat = (date) => {
     minute: '2-digit'
   });
   // reformats date to "yyyy-mm-dd hh:mm"
-  return s.substr(0,10).split('.').reverse().join('-') + s.substr(-6);
+  return s.substr(0,10).split('.').reverse().join('-') + s.slice(-6);
 };
 
 const compileStoryTitle = (title, comments, options) => {

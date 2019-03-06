@@ -33,8 +33,8 @@ const getIncomingData = function (body, response, resolveWithFullResponse) {
  */
 const updateSkin = (blog, skin) => {
   let skinEditUrl = `${getAlienLayoutUrl(blog)}skins/edit?key=${skin.name}&skinset=&action=modified&module=`;
-  console.log(`Preparing to edit skin at ${skinEditUrl}`);
-  req.get({
+  console.log(`\nPreparing to edit skin at ${skinEditUrl}`);
+  return req.get({
     uri: skinEditUrl,
     transform: getIncomingData
   })

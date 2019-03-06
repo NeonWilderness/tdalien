@@ -1,6 +1,6 @@
 {
   "name": "alienlayout",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Twoday Alien Template to host a foreign Wordpress site",
   "main": "alien.html",
   "repository": {
@@ -10,12 +10,14 @@
   "scripts": {
     "build": "webpack --mode production",
     "deploy": "node ./utils/uploadSkin --blog=foundation",
-    "deploy:ts": "node ./utils/uploadSkin --blog=talkstraight",
     "deploy:client": "node ./utils/uploadSkin --blog=spiegelei",
     "dev": "webpack --mode development",
     "patch": "node ./utils/bump --mode=patch",
     "minor": "node ./utils/bump --mode=minor",
     "major": "node ./utils/bump --mode=major",
+    "release:download": "node ./utils/downloadLayout",
+    "release:init": "node ./utils/uploadInit",
+    "release": "npm run release:init && npm run release:download",
     "start": "npm run build && npm run deploy"
   },
   "author": "NeonWilderness",
@@ -49,6 +51,6 @@
     "url-join": "^4.0.0",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3",
-    "yargs": "^13.2.1"
+    "yargs": "^13.2.2"
   }
 }

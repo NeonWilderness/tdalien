@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1] - 2019-03-06
+### Added
+- Added promise/polyfill for older browser without native promise support
+- Added fallback for post-id extraction
+- Added some internal tools for release management (initialize skins & download layout zip file)
+
+### Changed
+- Use BODY's alienStatus to directly find the appropriate external story link (save http call to story)
+- Change IFRAME url only instead of entirely leaving the platform (window.location) if a single story is requested
+- Fixed story matching problem in Firefox (due to date conversion differences)
+
 ## [1.8.0] - 2019-02-28
 ### Added
 - Added script version to debug log

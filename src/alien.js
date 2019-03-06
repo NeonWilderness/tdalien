@@ -92,25 +92,6 @@ class AlienInsideTwoday {
     return (alias ? alias[1] : '');
   }
 
-  /**
-   * Reads story and parses alienStatus to directly navigate to the original story link
-   * @param {string} storyUrl 
-   * @returns void
-   */
-  gotoStory(storyUrl) {
-   $.get(storyUrl, function(html){
-    let status = $(html).find('.alienStatus').text();
-    if (status) { 
-      try {
-        let statusParsed = JSON.parse(status);
-        window.location = statusParsed.link;
-      } catch(err) {
-        console.log(`Error parsing alienStatus of "${storyUrl}": ${err}.`);
-      }
-    }
-   });
-  }
-
   implant(options) {
 
     this.options = Object.assign({}, this.defaults, options);
@@ -118,13 +99,6 @@ class AlienInsideTwoday {
     this.options.version = this.parseVersion(document.body.dataset.version);
 
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
-
-    let path = location.pathname.toLowerCase();
-    if (this.options.targetStory && /\/stories\//.test(path)) {
-      let pathParts = path.split('/');
-      let storyUrl = (pathParts.slice(0, pathParts.indexOf('stories')+2)).join('/');
-      this.gotoStory(storyUrl);
-    }
 
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
     if (this.options.colorAlias !== this.defaults.colorAlias)
@@ -139,6 +113,23 @@ class AlienInsideTwoday {
     if (!!this.options.menuOffsetRight)
       navIcon.css('right', 25 + this.options.menuOffsetRight);
 
+    // set default iframe target to mainpage
+    let iframeUrl = this.options.targetUrl;
+    // does user want a story to be directly displayed if requested via /stories/xxxx link?
+    if (this.options.targetStory) {
+      // yes, then if a single story actually is requested, there is an alienStatus in the body
+      let alienStatus = $('.alienStatus').text();
+      if (alienStatus) {
+        try {
+          let parsedStatus = JSON.parse(alienStatus);
+          if (parsedStatus.link) iframeUrl = parsedStatus.link;
+        } catch(err) {
+          // on error: ignore and stick to mainpage
+        }
+      }
+    }
+    if (this.options.debug) console.log(`Using iframe url: ${iframeUrl}.`);
+
     $('.alien').each((index, el) => {
       switch (el.tagName) {
         case 'A':
@@ -147,7 +138,7 @@ class AlienInsideTwoday {
             el.innerHTML = el.innerHTML.replace('<% site.alias %>', this.options.newBlogAlias);
           break;
         case 'IFRAME':
-          el.src = this.options.targetUrl;
+          el.src = iframeUrl;
       }
     });
 
@@ -261,6 +252,9 @@ class AlienInsideTwoday {
         let m = s.match(regexPostId);
         if (m) postid = m[1];
       }
+
+      // potential post-id fallback if no avail through regex
+      if (!postid && item.postid && item.postid._) postid = item.postid._;
 
       // eliminate seconds in published date
       let d = item[this.options.publishedField].split(':');
