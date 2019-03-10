@@ -21,6 +21,14 @@ const xhrError = (when, which, xhr) => {
   toastr.error(`Fehler beim ${when} von ${which}: ${xhr.status} | ${xhr.statustext}.`);
 };
 
+/**
+ * Assures a timeout before the next promise http call
+ * @param {number} delay ms to wait
+ */
+const delayNextPromise = (delay => {
+  return new Promise(resolve => setTimeout(resolve, delay));
+});
+
 const getSkinData = (data) => {
   let $form = $(data).find('form');
   return {
@@ -264,7 +272,10 @@ const readStoriesSkin = (rssStories, options) => {
     .then(finalStories => {
       if (options.debug) console.log('finalStories: ', finalStories);
       if (finalStories && finalStories.length) {
-        let promises = finalStories.map(story => createOrUpdateTwodayStory(story, options));
+        let promises = finalStories.map((story, index) => {
+          return delayNextPromise(index * options.delayBetweenUpdates)
+            .then(() => createOrUpdateTwodayStory(story, options));
+          });
         return Promise.all(promises);
       } else {
         toastr.info('Keine neuen zu synchronisierenden Änderungen gefunden!');

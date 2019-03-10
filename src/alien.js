@@ -30,6 +30,7 @@ class AlienInsideTwoday {
       menuOffsetTop: 0,
       menuOffsetRight: 0,
       delayNewRelease: 1000 * 60 * 60 * 24 * 2, // delay new release update process/message for 2 days
+      delayBetweenUpdates: 200, // delay in milliseconds to avoid server stress/denials
       debug: false
     };
     this.providerPostIdReg = {
