@@ -7,7 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title><% response.title %></title>
   <meta name="author" content="<% site.alias %>" />
-  <meta name="description" content="A Wordpress-Alien inside Twoday" />
+  <meta name="description" content="<% site.title %> - A Blog-Alien inside Twoday" />
   <% site.metaRobots %>
   <% site.metaAlternate %>
   <link rel="shortcut icon" href='<% image name="favicon" fallback="/favicon" class="icon" as="url" %>'>
@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@latest/dist/alien.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
   <% site.skin name="alien" %>
   <% site.skin name="implant" %>
@@ -53,11 +53,11 @@
         <a id="btnLayouts" href="/layouts/main"><span>3</span><i class="fa fa-desktop"></i>&ensp;Zur Layoutverwaltung</a>
         <a id="btnCancel" href="#"><i class="fa fa-close"></i>&ensp;Abbrechen</a>
       </div>
-      <span class="copyright">&copy; 2019 NeonWilderness</span>
+      <span class="copyright">&copy; 2018-2020 NeonWilderness</span>
     </div>
     <div class="content-wrap">
       <div class="content">
-          <iframe class="alien" src="#" frameborder="0"></iframe>
+          <iframe id="frame" class="alien" src="#" frameborder="0" allowfullscreen="true"></iframe>
           <div style="display:none"><% response.body %></div>
       </div>
     </div>

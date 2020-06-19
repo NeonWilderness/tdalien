@@ -3,5 +3,6 @@
 .vscode
 *.log
 api
+test
 todo.md
 node_modules

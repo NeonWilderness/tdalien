@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2020-06-16
+### Added
+- Added new feature to validate/update the user's individual Alien options during a release upgrade. This will automatically remove obsolete settings and make sure that new settings will be available in the Site.implant skin
+- Added "delayBetweenUpdates" as a setting to Site.implant
+- Added "redirectToNewSite" to force URL redirection to new blog site for all non-admins
+- Added functionality to limit usage of this script to existing users (new users must register) 
+
+### Changed
+- Increased standard delay between server updates to 400 milliseconds
+- Upgrade dev dependencies/modules to newest versions
+
 ## [1.8.2] - 2019-03-10
 ### Added
 - Added delay between multiple story inserts/updates to avoid server stress/denials

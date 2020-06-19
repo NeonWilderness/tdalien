@@ -46,7 +46,7 @@ const getSkinData = (data) => {
 
 const readParamsSkinContent = () => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get(`/layouts/alien/skins/edit?key=Site.implant`, function (data) {
+    let xhr = $.get('/layouts/alien/skins/edit?key=Site.implant', function (data) {
       let params = getSkinData(data);
       resolve(params);
     })
@@ -60,7 +60,7 @@ const readParamsSkinContent = () => {
 
 const saveParamsSkinContent = (params) => {
   return new Promise((resolve, reject) => {
-    let xhr = $.post(`/layouts/alien/skins/edit?key=Site.implant`, params, function () {
+    let xhr = $.post('/layouts/alien/skins/edit?key=Site.implant', params, function () {
       resolve();
     })
       .fail(() => {
@@ -73,7 +73,7 @@ const saveParamsSkinContent = (params) => {
 
 const readStoriesSkinContent = () => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get(`/layouts/alien/skins/edit?key=Site.stories`, function (data) {
+    let xhr = $.get('/layouts/alien/skins/edit?key=Site.stories', function (data) {
       let params = getSkinData(data);
       let skinStories = JSON.parse(params.skin || '[]');
       skinStories.forEach(story => { story.published = new Date(story.published); });
@@ -89,7 +89,7 @@ const readStoriesSkinContent = () => {
 
 const saveStoriesSkinContent = (params) => {
   return new Promise((resolve, reject) => {
-    let xhr = $.post(`/layouts/alien/skins/edit?key=Site.stories`, params, function () {
+    let xhr = $.post('/layouts/alien/skins/edit?key=Site.stories', params, function () {
       resolve();
     })
       .fail(() => {
@@ -101,7 +101,7 @@ const saveStoriesSkinContent = (params) => {
 };
 
 /**
- * Finds and returns all stories that have changed or a plain new
+ * Finds and returns all stories that have changed or are plain new
  * @param {array} rssStories - story data from current RSS
  * @param {array} skinStories - saved story data from last update run
  * @returns {array} filtered stories (new or changed)
@@ -148,7 +148,7 @@ const readStoriesMain = (changedOrNewStories, options) => {
         let [title, id, pubDate] = this.innerText.split('|');
         pubDate = pubDate.trim();
         tdStories[pubDate] = id;
-        if (options.debug) 
+        if (options.debug)
           console.log(`storyData> title: ${title}, pubDate: ${pubDate}, id: ${id}`);
       });
       let finalStories = Object.keys(changedOrNewStories).reduce((all, published) => {
@@ -200,7 +200,7 @@ const properDateFormat = (date) => {
     minute: '2-digit'
   });
   // reformats date to "yyyy-mm-dd hh:mm"
-  return s.substr(0,10).split('.').reverse().join('-') + s.slice(-6);
+  return s.substr(0, 10).split('.').reverse().join('-') + s.slice(-6);
 };
 
 const compileStoryTitle = (title, comments, options) => {
@@ -223,7 +223,7 @@ const createOrUpdateTwodayStory = (story, options) => {
       url: '/stories/create',
       text: 'neu angelegt',
       method: 'create'
-    },
+    }
   };
   const isCreate = !story.hasOwnProperty('id');
 
@@ -275,7 +275,7 @@ const readStoriesSkin = (rssStories, options) => {
         let promises = finalStories.map((story, index) => {
           return delayNextPromise(index * options.delayBetweenUpdates)
             .then(() => createOrUpdateTwodayStory(story, options));
-          });
+        });
         return Promise.all(promises);
       } else {
         toastr.info('Keine neuen zu synchronisierenden Änderungen gefunden!');

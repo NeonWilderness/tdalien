@@ -1,11 +1,20 @@
 <script>$(function(){
   $.fn.alien().implant({
 
-    // URL Ihres Zielblogs (z.B. Wordpress) setzen; empfohlen: https-Adresse!
+    // URL Ihres Zielblogs (z.B. Wordpress) - muss eine https-Adresse sein!
     targetUrl: 'https://die-netzialisten.de',
 
-    // URL-Teil des RSS Feeds
+    // URL-Teil/-Abschnitt für den RSS Feed, Beispiele:
+    // für Wordpress: 'feed'
+    // für Blogger/Blogspot: 'feeds/posts/default?alt=rss'
+    // für Tumblr: 'rss'
     rssFeedUrl: 'feed',
+
+    // RSS-Feldname für den Beitragstitel
+    titleField: 'title',
+
+    // RSS-Feldname für das Publikationsdatum
+    publishedField: 'pubDate',
 
     // RSS-Feldname für Kommentarinformationen
     commentsField: 'comments',
@@ -14,39 +23,45 @@
     allowComments: true,
 
     // Farbe des Blog-Alias neben dem Icon (linke obere Ecke)
-    colorAlias: '#cb405c',
+    colorAlias: '#f7cf5e',
 
     // Farbe des "Hamburger" Icons (rechte oberen Ecke)
-    colorNavIcon: '#cb405c',
+    colorNavIcon: '#f7cf5e',
 
-    // Vertikales Offset des Hamburger-Icons vom oberen Rand (Pixel)
+    // Vertikales Offset des Hamburger-Icons vom oberen Rand (Abstand in Pixel)
     menuOffsetTop: 0,
 
-    // Horizontales Offset des Hamburger-Icons vom rechten Rand (Pixel)
+    // Horizontales Offset des Hamburger-Icons vom rechten Rand (Abstand in Pixel)
     menuOffsetRight: 0,
 
-    // Pause zwischen den Updateprüfungen in Millisekunden (default: 2 Minuten)
+    // Minimale Pause zwischen den Updateprüfungen in Millisekunden (default = 2 Minuten)
     pauseChecks: 1000*60*2,
 
-    // Anzahl der maximal zu synchronisierenden Beiträge (0=Keine Synchronisation)
+    // Anzahl der maximal zu synchronisierenden Beiträge (0 = Keine Synchronisation)
     syncStories: 3,
 
     // Klick auf Beitrag in der Twoday-Blogroll springt direkt zum Artikel (true = zum Artikel, false = zur Homepage)
     targetStory: true,
 
-    // Prefix für den Beitragstitel in der Blogroll
-    titlePrefix: '',
+    // Prefix für den Beitragstitel in der Blogroll ($comments = Variable für Kommentarzähler)
+    titlePrefix: '\u2709 $comments - ',
 
-    // Postfix für den Beitragstitel in der Blogroll
-    titlePostfix: ' - \u2709 $comments',
+    // Postfix für den Beitragstitel in der Blogroll ($comments = Variable für Kommentarzähler)
+    titlePostfix: '',
 
     // Position der Nachrichten für den Admin des Blogs; mögliche Werte siehe
-    // http://codeseven.github.io/toastr/demo.html unter dem Feld "Position".
+    // https://codeseven.github.io/toastr/demo.html unter dem Feld "Position".
     // Beispiel: rechte untere Ecke wäre 'toast-bottom-right'.
     positionToast: 'toast-top-full-width',
 
-    // Pausiere nächste Anfrage für Releaseaktualisierung (default: 2 Tage)
+    // Pause in ms für die nächste Anfrage einer Releaseaktualisierung (default = 2 Tage)
     delayNewRelease: 1000*60*60*24*2,
+
+    // Pause in ms zwischen Serverzugriffen (bei Anlegen/Änderung von Beiträgen)
+    delayBetweenUpdates: 400,
+
+    // Redirect-Schalter (true = Wechselt zum neuen Blog bei allen Link-Clicks von Nicht-Admins)
+    redirectToNewSite: true,
 
     // Debug-Schalter (true = Ausgabe zusätzlicher Konsol-Nachrichten)
     debug: false

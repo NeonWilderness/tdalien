@@ -6,7 +6,7 @@
 const request = require('request-promise-native');
 
 //request.debug = true; // uncomment to activate debugging
-require('dotenv-safe').load();
+require('dotenv-safe').config();
 
 // set some defaults
 let req = request.defaults({

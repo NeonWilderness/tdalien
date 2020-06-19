@@ -6,6 +6,7 @@ import {
   readParamsSkinContent,
   saveParamsSkinContent
 } from './skin';
+import { updateParamsSkinContent } from './params';
 const urlJoin = require('url-join');
 
 class AlienInsideTwoday {
@@ -22,24 +23,27 @@ class AlienInsideTwoday {
       pauseChecks: 1000 * 60 * 2, // pause 2 min in between checks
       syncStories: 3,
       targetStory: true, // false=always jump to homepage, go directly to story if possible
-      titlePrefix: '',
-      titlePostfix: ' - \u2709 $comments',
-      colorAlias: '#13c4a5',
-      colorNavIcon: '#13c4a5',
+      titlePrefix: '\u2709 $comments - ',
+      titlePostfix: '',
+      colorAlias: '#f7cf5e',
+      colorNavIcon: '#f7cf5e',
       positionToast: 'toast-top-full-width',
       menuOffsetTop: 0,
       menuOffsetRight: 0,
       delayNewRelease: 1000 * 60 * 60 * 24 * 2, // delay new release update process/message for 2 days
-      delayBetweenUpdates: 200, // delay in milliseconds to avoid server stress/denials
+      delayBetweenUpdates: 400, // delay in milliseconds to avoid server stress/denials
+      redirectToNewSite: true, // leaves Twoday for all link clicks from non-admins
       debug: false
     };
     this.providerPostIdReg = {
       wordpress: /\?p=([0-9]*)/,
-      nuxtjs: /\/([^\/]+)\/?$/,
+      nuxtjs: /\/([^/]+)\/?$/,
       blogger: /post-([0-9]*)/,
       tumblr: /post\/([0-9]*)/
     };
     this.webtaskUrl = 'https://wt-061cbc2118e775aa9f3fe9182b7691db-0.sandbox.auth0-extend.com/getrss';
+    this.appUser = '{{appuser}}';
+    this.noAlien = '{{noalien}}';
   }
 
   checkNewVersionAvailability() {
@@ -55,7 +59,7 @@ class AlienInsideTwoday {
           $('#newVersion').fadeOut();
           if (e.target.id === 'btnClose') { // User clicked "not now!"
             let delayUntil = Date.now() + self.options.delayNewRelease;
-            localStorage.setItem('delayAlienRelease', delayUntil);            
+            localStorage.setItem('delayAlienRelease', delayUntil);
           }
         });
         $('#btnUpdate').on('click', function (e) {
@@ -101,6 +105,37 @@ class AlienInsideTwoday {
 
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
+    if (!this.isAppUser()) {
+      $('#frame').attr('srcdoc', atob(this.noAlien));
+      $('#showMenu').attr('title', 'Zur Layoutübersicht').click(function () {
+        window.location.href = '/layouts';
+      });
+      return;
+    }
+
+    // set default iframe target to mainpage
+    let iframeUrl = this.options.targetUrl;
+    // does user want a story to be directly displayed if requested via /stories/xxxx link?
+    if (this.options.targetStory) {
+      // yes, then if a single story actually is requested, there is an alienStatus in the body
+      let alienStatus = $('.alienStatus').text();
+      if (alienStatus) {
+        try {
+          let parsedStatus = JSON.parse(alienStatus);
+          if (parsedStatus.link) iframeUrl = parsedStatus.link;
+        } catch (err) {
+          // on error: ignore and stick to mainpage
+        }
+      }
+    }
+    if (this.options.debug) console.log(`Using iframe url: ${iframeUrl}.`);
+
+    let isAdmin = this.isUserAdministrator();
+    if (!isAdmin && !!this.options.redirectToNewSite) {
+      if (this.options.debug) console.log('Redirecting to new site.');
+      window.location.href = iframeUrl;
+    }
+
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
     if (this.options.colorAlias !== this.defaults.colorAlias)
       $('#alias').css('color', this.options.colorAlias);
@@ -113,23 +148,6 @@ class AlienInsideTwoday {
       navIcon.css('top', 8 + this.options.menuOffsetTop);
     if (!!this.options.menuOffsetRight)
       navIcon.css('right', 25 + this.options.menuOffsetRight);
-
-    // set default iframe target to mainpage
-    let iframeUrl = this.options.targetUrl;
-    // does user want a story to be directly displayed if requested via /stories/xxxx link?
-    if (this.options.targetStory) {
-      // yes, then if a single story actually is requested, there is an alienStatus in the body
-      let alienStatus = $('.alienStatus').text();
-      if (alienStatus) {
-        try {
-          let parsedStatus = JSON.parse(alienStatus);
-          if (parsedStatus.link) iframeUrl = parsedStatus.link;
-        } catch(err) {
-          // on error: ignore and stick to mainpage
-        }
-      }
-    }
-    if (this.options.debug) console.log(`Using iframe url: ${iframeUrl}.`);
 
     $('.alien').each((index, el) => {
       switch (el.tagName) {
@@ -157,7 +175,7 @@ class AlienInsideTwoday {
     this.initClickFunctions();
 
     setTimeout(() => {
-      if (this.isUserAdministrator()) {
+      if (isAdmin) {
 
         $('.adminOnly').show(0).css('display', 'block');
 
@@ -206,6 +224,11 @@ class AlienInsideTwoday {
 
   }
 
+  isAppUser() {
+    let alias = document.getElementById('alias').innerText || '';
+    return atob(this.appUser).split('|').indexOf(alias) >= 0;
+  }
+
   isUserAdministrator() {
     let status = document.getElementById('loginStatus').innerText;
     let role = status.match(/\((.*)\)/);
@@ -242,7 +265,7 @@ class AlienInsideTwoday {
   readStoriesFromRssData(json) {
     if (this.options.debug) console.log(`Webtask getrss items: ${JSON.stringify(json, null, 2)}`);
 
-    let regexPostId = this.getFeedsPostIdSelector(json.generator);
+    let regexPostId = this.getFeedsPostIdSelector(json.generator.toLowerCase());
 
     let rssStories = json.items.reduce((all, item) => {
 
@@ -258,18 +281,24 @@ class AlienInsideTwoday {
       if (!postid && item.postid && item.postid._) postid = item.postid._;
 
       // eliminate seconds in published date
-      let d = item[this.options.publishedField].split(':');
-      d[d.length - 1] = '00 ' + d[d.length - 1].substr(3);
+      let published = new Date(item[this.options.publishedField]);
+      published.setSeconds(0, 0);
+
+      // fix snippet content
+      let contentSnippet = (typeof item.contentSnippet !== 'string' ? '...' : item.contentSnippet.replace(/ Werbeanzeigen/gi, ''));
+      if (contentSnippet.slice(-1) !== '.') contentSnippet += '\u2026';
 
       let story = {
         postid,
         link: item.link || json.link,
-        contentSnippet: item.contentSnippet.replace(/ Werbeanzeigen/gi, ''),
+        contentSnippet,
         title: item[this.options.titleField] || '...',
-        published: new Date(d.join(':')),
+        published,
         commentUrl: item[this.options.commentsField] || `${item.link}#comments`,
         comments: item[this.options.counterField] || 0
       };
+
+      if (this.options.debug) console.log(`story: ${JSON.stringify(story, null, 2)}`);
 
       all.push(story);
       return all;
@@ -294,7 +323,7 @@ class AlienInsideTwoday {
       })
       .then(() => readParamsSkinContent())
       .then((params) => {
-        params.skin = savedParams;
+        updateParamsSkinContent(params, savedParams, this.options);
         return saveParamsSkinContent(params);
       })
       .then(() => {
@@ -326,7 +355,7 @@ class AlienInsideTwoday {
 }
 
 (function ($) {
-  "use strict";
+  'use strict';
 
   $.fn.alien = function () {
 
