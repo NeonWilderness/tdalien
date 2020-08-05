@@ -133,7 +133,8 @@ class AlienInsideTwoday {
     let isAdmin = this.isUserAdministrator();
     if (!isAdmin && !!this.options.redirectToNewSite) {
       if (this.options.debug) console.log('Redirecting to new site.');
-      window.location.href = iframeUrl;
+      window.location.replace(iframeUrl);
+      return false;
     }
 
     this.options.colorAlias = this.options.colorAlias.toLowerCase();

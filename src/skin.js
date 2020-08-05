@@ -145,7 +145,7 @@ const readStoriesMain = (changedOrNewStories, options) => {
       let tdStories = {};
       let $admin = $(data).find('.admin');
       $admin.find('.storyData').each(function () {
-        let [title, id, pubDate] = this.innerText.split('|');
+        let [title, id, pubDate] = this.innerText.split(':¦:');
         pubDate = pubDate.trim();
         tdStories[pubDate] = id;
         if (options.debug)

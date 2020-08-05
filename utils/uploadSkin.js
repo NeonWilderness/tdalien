@@ -38,6 +38,13 @@ acceptTerms()
     })
   })
   .then(() => {
+    let skin = fs.readFileSync(path.resolve(process.cwd(), './src/skins/Story-mgrlistitem.html'), 'utf-8');
+    return updateSkin(blog, {
+      name: 'Story.mgrlistitem',
+      content: skin
+    })
+  })
+  .then(() => {
     let js = fs.readFileSync(path.resolve(process.cwd(), './dist/alien.js'), 'utf-8');
     return updateSkin(blog, {
       name: 'Site.alien',
