@@ -33,6 +33,7 @@ class AlienInsideTwoday {
       delayNewRelease: 1000 * 60 * 60 * 24 * 2, // delay new release update process/message for 2 days
       delayBetweenUpdates: 400, // delay in milliseconds to avoid server stress/denials
       redirectToNewSite: true, // leaves Twoday for all link clicks from non-admins
+      needUpdateLevel: 'Owner', // who may launch the story update process: Owner | Admin
       debug: false
     };
     this.providerPostIdReg = {
@@ -130,8 +131,16 @@ class AlienInsideTwoday {
     }
     if (this.options.debug) console.log(`Using iframe url: ${iframeUrl}.`);
 
+    let needUpdateLevel = this.options.needUpdateLevel.toString().toLowerCase().substr(0, 5);
+    if (this.options.debug) console.log(`Required update level: ${needUpdateLevel}`);
+
+    let isCreator = ($('#createInfo>a').text() === '<% username %>');
     let isAdmin = this.isUserAdministrator();
-    if (!isAdmin && !!this.options.redirectToNewSite) {
+    let canSync = 
+      (needUpdateLevel === 'owner' && isCreator) || 
+      (needUpdateLevel === 'admin' && isAdmin);
+
+    if (!canSync && !!this.options.redirectToNewSite) {
       if (this.options.debug) console.log('Redirecting to new site.');
       window.location.replace(iframeUrl);
       return false;
@@ -176,7 +185,7 @@ class AlienInsideTwoday {
     this.initClickFunctions();
 
     setTimeout(() => {
-      if (isAdmin) {
+      if (canSync) {
 
         $('.adminOnly').show(0).css('display', 'block');
 
@@ -246,7 +255,10 @@ class AlienInsideTwoday {
   }
 
   parseVersion(version) {
-    return parseInt(version.replace(/\./g, ''));
+    return version.split('.').reduce((all, vpart, index) => {
+      all += vpart * 100 ** (2 - index);
+      return all;
+    }, 0);
   }
 
   readAlienRSS() {

@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2020-08-19
+### Added
+- Added functionality to optionally limit sync process to the blog's owner only (admin is not eligible)
+- Added "needUpdateLevel" as a new setting to Site.implant
+- Added Antville's site.createInfo macro to html to identify the blog's creator (owner)
+- Added more logging during debug mode
+- Added new registered Alien user
+
+### Changed
+- Fixed parsing routine of semantic version number
+- Upgrade dev dependencies/modules to newest versions
+
 ## [1.9.0] - 2020-06-16
 ### Added
 - Added new feature to validate/update the user's individual Alien options during a release upgrade. This will automatically remove obsolete settings and make sure that new settings will be available in the Site.implant skin

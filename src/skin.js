@@ -128,10 +128,13 @@ const compareStories = (rssStories, skinStories, options) => {
     return all;
   }, {});
 
+  if (options.debug) console.table(checker);
+
   return skinStories.reduce((all, story) => {
     let lookupKey = properDateFormat(story.published);
     if (all.hasOwnProperty(lookupKey) && storyUnchanged(all[lookupKey], story)) {
       delete all[lookupKey];
+      if (options.debug) console.log(lookupKey, 'unchanged & removed.');
     }
     return all;
   }, checker);
@@ -193,10 +196,10 @@ const getFormData = (data) => {
 const properDateFormat = (date) => {
   // formats date to "dd.mm.yyyy, hh:mm"
   let s = date.toLocaleString('de-DE', {
-    year: 'numeric', 
-    month: '2-digit', 
-    day: '2-digit', 
-    hour: '2-digit', 
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
     minute: '2-digit'
   });
   // reformats date to "yyyy-mm-dd hh:mm"

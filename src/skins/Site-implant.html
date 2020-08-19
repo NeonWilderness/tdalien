@@ -63,6 +63,11 @@
     // Redirect-Schalter (true = Wechselt zum neuen Blog bei allen Link-Clicks von Nicht-Admins)
     redirectToNewSite: true,
 
+    // Berechtigungsstufe des Users, die für eine Aktualisierung benötigt wird (Owner | Admin)
+    // 'Owner' = Nur der Blog-Eigentümer kann eine Aktualisierung auslösen
+    // 'Admin' = Jeder 'Administrator' und der Eigentümer können aktualisieren
+    needUpdateLevel: 'Owner',
+
     // Debug-Schalter (true = Ausgabe zusätzlicher Konsol-Nachrichten)
     debug: false
 

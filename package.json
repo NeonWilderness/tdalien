@@ -1,7 +1,7 @@
 {
   "name": "alienlayout",
   "description": "Twoday Alien Template to host a foreign Wordpress site",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "author": "NeonWilderness",
   "bugs": {
     "url": "https://github.com/NeonWilderness/tdalien/issues"
@@ -17,9 +17,9 @@
     "babel-polyfill": "^6.26.0",
     "babel-register": "^6.26.0",
     "cheerio": "^1.0.0-rc.3",
-    "css-loader": "^4.2.0",
+    "css-loader": "^4.2.1",
     "dotenv-safe": "^8.2.0",
-    "eslint": "^7.6.0",
+    "eslint": "^7.7.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-loader": "^4.0.2",
@@ -31,7 +31,7 @@
     "html-webpack-plugin": "^4.3.0",
     "less": "^3.12.2",
     "less-loader": "^6.2.0",
-    "mini-css-extract-plugin": "^0.9.0",
+    "mini-css-extract-plugin": "^0.10.0",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "semver": "^7.3.2",
