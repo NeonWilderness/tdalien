@@ -32,14 +32,14 @@ const delayNextPromise = (delay => {
 const getSkinData = (data) => {
   let $form = $(data).find('form');
   return {
-    secretKey: $form.find('[name=secretKey]').val(),
+    secretKey: $form.find('[name="secretKey"]').val(),
     action: $form.find('[name="action"]').val(),
     key: $form.find('[name="key"]').val(),
     skinset: $form.find('[name="skinset"]').val(),
     module: $form.find('[name="module"]').val(),
     title: $form.find('[name="title"]').val(),
     description: $form.find('[name="description"]').html(),
-    skin: $form.find('[name=skin]').val(),
+    skin: $form.find('[name="skin"]').val(),
     save: $form.find('[name="save"]').val()
   };
 };

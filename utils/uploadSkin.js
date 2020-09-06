@@ -26,11 +26,11 @@ acceptTerms()
   })
   .then(() => {
     console.log('Successfully logged into Twoday. Checking Memberships...');
-    return getMemberships();
+    /* return getMemberships();
   })
   .then(adminBlogs => {
     if (adminBlogs.indexOf(blog) < 0) throw new Error('Blog not found or authorization failed.');
-    console.log(`${blog} blog is authorized.`);
+    console.log(`${blog} blog is authorized.`); */
     let skin = fs.readFileSync(path.resolve(process.cwd(), './dist/site-page-skin.html'), 'utf-8');
     return updateSkin(blog, {
       name: 'Site.page',
