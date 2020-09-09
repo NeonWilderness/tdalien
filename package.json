@@ -17,7 +17,7 @@
     "babel-polyfill": "^6.26.0",
     "babel-register": "^6.26.0",
     "cheerio": "^1.0.0-rc.3",
-    "css-loader": "^4.2.2",
+    "css-loader": "^4.3.0",
     "dotenv-safe": "^8.2.0",
     "eslint": "^7.8.1",
     "eslint-config-standard": "^14.1.1",
@@ -31,7 +31,7 @@
     "html-webpack-plugin": "^4.4.1",
     "less": "^3.12.2",
     "less-loader": "^7.0.1",
-    "mini-css-extract-plugin": "^0.11.0",
+    "mini-css-extract-plugin": "^0.11.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "semver": "^7.3.2",
@@ -40,7 +40,7 @@
     "url-join": "^4.0.0",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
-    "yargs": "^15.4.1"
+    "yargs": "^16.0.0"
   },
   "homepage": "https://github.com/NeonWilderness/tdalien/blob/master/README.md",
   "keywords": [
