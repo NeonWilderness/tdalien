@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { acceptTerms } = require('./_acceptTerms');
 const { loginTwoday } = require('./_login');
-const getMemberships = require('./_getMemberships');
+//const getMemberships = require('./_getMemberships');
 const updateSkin = require('./_updateSkin');
 const argv = require('yargs').argv;
 

@@ -272,6 +272,7 @@ class AlienInsideTwoday {
     })
       .fail(function (jqXHR, type, error) {
         console.error(`Webtask getrss error: ${type} | ${error}.`);
+        toastr.error(`Das Lesen des RSS Feeds endete mit Fehler: ${type} - ${error}.`);
       });
   }
 

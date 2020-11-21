@@ -260,7 +260,7 @@ const createOrUpdateTwodayStory = (story, options) => {
 };
 
 const readStoriesSkin = (rssStories, options) => {
-  var skinParams = {};
+  let skinParams = {};
 
   readStoriesSkinContent()
     .then(({ params, skinStories }) => {
