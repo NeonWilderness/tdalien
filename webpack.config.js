@@ -33,7 +33,8 @@ module.exports = {
             loader: 'string-replace-loader',
             options: {
               multiple: [
-                { search: '{{version}}', replace: getPackageVersion(), flags: 'g' }
+                { search: '{{version}}', replace: getPackageVersion(), flags: 'g' },
+                { search: '{{year}}', replace: new Date().getFullYear().toString(), flags: 'g' }
               ]
             }
           }

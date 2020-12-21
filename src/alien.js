@@ -108,7 +108,7 @@ class AlienInsideTwoday {
 
     if (!this.isAppUser()) {
       $('#frame').attr('srcdoc', atob(this.noAlien));
-      $('#showMenu').attr('title', 'Zur Layoutübersicht').click(function () {
+      $('#showMenu').attr('title', 'Zur Layoutübersicht').on('click', function () {
         window.location.href = '/layouts';
       });
       return;
