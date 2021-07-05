@@ -1,41 +1,42 @@
 /**
  * uploadInit: uploads/updates some Twoday skins to prepare for new layout release
  * ===============================================================================
- * 
+ *
  */
+const { argv } = require('yargs');
 const fs = require('fs');
 const path = require('path');
-const { acceptTerms } = require('./_acceptTerms');
-const { loginTwoday } = require('./_login');
-const getMemberships = require('./_getMemberships');
-const updateSkin = require('./_updateSkin');
-const argv = require('yargs').argv;
+const Twoday = require('@neonwilderness/twoday');
 
-let blog = (argv.blog ? argv.blog.toLowerCase() : 'foundation');
-acceptTerms()
-  .then(() => {
-    console.log('Terms accepted. Now logging in...');
-    return loginTwoday();
-  })
-  .then(() => {
-    console.log('Successfully logged into Twoday. Checking Memberships...');
-    return getMemberships();
-  })
-  .then(adminBlogs => {
-    if (adminBlogs.indexOf(blog) < 0) throw new Error('Blog not found or authorization failed.');
-    console.log(`${blog} blog is authorized.`);
-    let skin = fs.readFileSync(path.resolve(process.cwd(), './src/skins/Site-implant.html'), 'utf-8');
-    return updateSkin(blog, {
-      name: 'Site.implant',
-      content: skin
-    })
-  })
-  .then(() => {
-    return updateSkin(blog, {
-      name: 'Site.stories',
-      content: '[]'
-    })
-  })
-  .catch(err => {
-    console.log('Update ***failed*** for blog:', blog, 'with Error', err);
-  });
+require('dotenv-safe').config();
+
+if (!argv.alias) {
+  console.log('Blog alias must be specified with --alias=blogname');
+  process.exit(1);
+}
+const alias = argv.alias.toLowerCase();
+
+if (!argv.platform) {
+  console.log('Target platform must be specified with --platform=dev|prod');
+  process.exit(1);
+}
+const platform = argv.platform.toLowerCase();
+
+(async () => {
+  try {
+    const td = new Twoday(platform);
+    await td.login();
+
+    await td.updateSkin(alias, 'Site.implant', {
+      skin: fs.readFileSync(path.resolve(process.cwd(), './src/skins/Site-implant.html'))
+    });
+
+    await td.updateSkin(alias, 'Story.mgrlistitem', {
+      skin: fs.readFileSync(path.resolve(process.cwd(), './src/skins/Story-mgrlistitem.html'))
+    });
+
+    await td.updateSkin(alias, 'Site.stories', { skin: '[]' });
+  } catch (err) {
+    console.log(`Error while initializing new alien release --> ${err}`);
+  }
+})();
