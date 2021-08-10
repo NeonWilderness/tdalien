@@ -3,6 +3,8 @@
  * ======================================================================
  * 
  */
+const homeDomain = 'https://<% site.alias %>.twoday.net/';
+
 const alienStatus = (status) => {
   let clean = {
     title: status.title,
@@ -46,7 +48,7 @@ const getSkinData = (data) => {
 
 const readParamsSkinContent = () => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get('/layouts/alien/skins/edit?key=Site.implant', function (data) {
+    let xhr = $.get(`${homeDomain}layouts/alien/skins/edit?key=Site.implant`, function (data) {
       let params = getSkinData(data);
       resolve(params);
     })
@@ -60,7 +62,7 @@ const readParamsSkinContent = () => {
 
 const saveParamsSkinContent = (params) => {
   return new Promise((resolve, reject) => {
-    let xhr = $.post('/layouts/alien/skins/edit?key=Site.implant', params, function () {
+    let xhr = $.post(`${homeDomain}layouts/alien/skins/edit?key=Site.implant`, params, function () {
       resolve();
     })
       .fail(() => {
@@ -73,7 +75,7 @@ const saveParamsSkinContent = (params) => {
 
 const readStoriesSkinContent = () => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get('/layouts/alien/skins/edit?key=Site.stories', function (data) {
+    let xhr = $.get(`${homeDomain}layouts/alien/skins/edit?key=Site.stories`, function (data) {
       let params = getSkinData(data);
       let skinStories = JSON.parse(params.skin || '[]');
       skinStories.forEach(story => { story.published = new Date(story.published); });
@@ -89,7 +91,7 @@ const readStoriesSkinContent = () => {
 
 const saveStoriesSkinContent = (params) => {
   return new Promise((resolve, reject) => {
-    let xhr = $.post('/layouts/alien/skins/edit?key=Site.stories', params, function () {
+    let xhr = $.post(`${homeDomain}layouts/alien/skins/edit?key=Site.stories`, params, function () {
       resolve();
     })
       .fail(() => {
@@ -144,7 +146,7 @@ const compareStories = (rssStories, skinStories, options) => {
 const readStoriesMain = (changedOrNewStories, options) => {
 
   return new Promise((resolve, reject) => {
-    let xhr = $.get('/stories/main', function (data) {
+    let xhr = $.get(`${homeDomain}stories/main`, function (data) {
       let tdStories = {};
       let $admin = $(data).find('.admin');
       $admin.find('.storyData').each(function () {
@@ -217,22 +219,23 @@ const createOrUpdateTwodayStory = (story, options) => {
   const params = {
     // isCreate=false (Aktualisierung)
     false: {
-      url: `/stories/${story.id}/edit`,
+      url: `stories/${story.id}/edit`,
       text: 'aktualisiert',
       method: 'update'
     },
     // isCreate=true (Neuanlage)
     true: {
-      url: '/stories/create',
+      url: 'stories/create',
       text: 'neu angelegt',
       method: 'create'
     }
   };
   const isCreate = !story.hasOwnProperty('id');
+  const sUrl = `${homeDomain}${params[isCreate].url}`;
 
   return new Promise((resolve, reject) => {
 
-    let xhr = $.get(params[isCreate].url, function (data) {
+    let xhr = $.get(sUrl, function (data) {
 
       story.alienLastUpdate = new Date().toISOString();
       let formData = getFormData(data);
@@ -241,7 +244,7 @@ const createOrUpdateTwodayStory = (story, options) => {
       formData.createtime = properDateFormat(story.published);
       if (!options.allowComments || formData.discussions == null) delete formData.discussions;
 
-      xhr = $.post(params[isCreate].url, formData, function () {
+      xhr = $.post(sUrl, formData, function () {
         toastr.info(`Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday ${params[isCreate].text}.`);
         resolve();
       })

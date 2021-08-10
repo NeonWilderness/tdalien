@@ -107,7 +107,7 @@ class AlienInsideTwoday {
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
     if (!this.isAppUser()) {
-      $('#frame').attr('srcdoc', atob(this.noAlien));
+      $('#frame').attr('srcdoc', window.atob(this.noAlien));
       $('#showMenu').attr('title', 'Zur Layoutübersicht').on('click', function () {
         window.location.href = '/layouts';
       });
@@ -117,7 +117,7 @@ class AlienInsideTwoday {
     // set default iframe target to mainpage
     let iframeUrl = this.options.targetUrl;
     // does user want a story to be directly displayed if requested via /stories/xxxx link?
-    if (this.options.targetStory) {
+    if (window.location.pathname.toLowerCase().startsWith('/stories') && this.options.targetStory) {
       // yes, then if a single story actually is requested, there is an alienStatus in the body
       let alienStatus = $('.alienStatus').text();
       if (alienStatus) {
@@ -203,7 +203,7 @@ class AlienInsideTwoday {
           if (this.maySyncNow()) this.readAlienRSS();
         }
       }
-    }, 2000);
+    }, 1000);
 
   }
 
@@ -236,7 +236,7 @@ class AlienInsideTwoday {
 
   isAppUser() {
     let alias = document.getElementById('alias').innerText || '';
-    return atob(this.appUser).split('|').indexOf(alias) >= 0;
+    return window.atob(this.appUser).split('|').indexOf(alias) >= 0;
   }
 
   isUserAdministrator() {
