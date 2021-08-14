@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump dev dependencies
 - Bump jquery to 3.6.0 version in site.page HTML
-- Always us fix https home domain url when issuing XmlHttp calls
+- Always use a fixed https home domain url when issuing XmlHttp calls
 
 ### Fixed
 - Directly jump to story link only when a /stories link was passed in location.pathname
