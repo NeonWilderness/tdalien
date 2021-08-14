@@ -26,6 +26,7 @@ const platform = argv.platform.toLowerCase();
   try {
     const td = new Twoday(platform);
     await td.login();
+    await td.useLayout(alias, 'alien');
 
     await td.updateSkin(alias, 'Site.implant', {
       skin: fs.readFileSync(path.resolve(process.cwd(), './src/skins/Site-implant.html'))
