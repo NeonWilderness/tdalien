@@ -1,5 +1,9 @@
 {
-  "extends": "standard",
+  "extends": "prettier",
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "ecmaVersion": 8
+  },
   "rules": {
     "allowSingleLineBlocks": 0,
     "brace-style": 0,

@@ -1,26 +1,26 @@
 const fs = require('fs');
 const path = require('path');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 require('dotenv-safe').config();
 const appUser = Buffer.from(process.env.APPUSER).toString('base64');
 const noAlien = Buffer.from(process.env.NOALIEN).toString('base64');
 
 const getPackageVersion = () => {
-  let pkg = JSON.parse(fs.readFileSync('./package.json'));
+  let pkg = JSON.parse(fs.readFileSync('./package.json').toString());
   return pkg.version;
 };
 
 module.exports = {
   entry: {
-    'alien': './src/alien.js'
+    alien: './src/alien.js'
   },
   output: {
     path: path.join(__dirname, 'dist'),
     filename: '[name].js'
   },
-  externals: [
-  ],
+  externals: [],
   resolve: {
     extensions: ['.html', '.less', '.js', '.json']
   },
@@ -51,17 +51,6 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        exclude: /node_modules/,
-        enforce: 'pre',
-        use: {
-          loader: 'eslint-loader',
-          options: { 
-            formatter: require("eslint-friendly-formatter")
-          }
-        }
-      },
-      {
-        test: /\.js$/,
         use: [
           {
             loader: 'string-replace-loader',
@@ -83,18 +72,15 @@ module.exports = {
       },
       {
         test: /\.less$/,
-        use: [
-          { loader: MiniCssExtractPlugin.loader },
-          { loader: 'css-loader' },
-          { loader: 'less-loader' }
-        ]
+        use: [{ loader: MiniCssExtractPlugin.loader }, { loader: 'css-loader' }, { loader: 'less-loader' }]
       }
     ]
   },
-  plugins: [
+  plugins: [ // @ts-ignore
+    new ESLintPlugin(),
     new MiniCssExtractPlugin({
-      filename: "alien.css"
-    }),    
+      filename: 'alien.css'
+    }),
     new HtmlWebPackPlugin({
       template: './src/alien.html',
       filename: './site-page-skin.html',

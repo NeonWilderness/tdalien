@@ -27,7 +27,6 @@ const extractSavedParams = (savedParams, options) => {
  * @returns {void} (updated content string is in params.skin)
  */
 const updateParamsSkinContent = (params, savedParams, options) => {
-
   let userAlienOptions = extractSavedParams(savedParams, options);
   console.log('User Alien Options BEFORE Upgrade:\n', userAlienOptions);
 
@@ -35,15 +34,12 @@ const updateParamsSkinContent = (params, savedParams, options) => {
     const regx = new RegExp(`${option.key}\\s*:\\s*(.*)`);
     const replace = params.skin.match(regx);
     if (replace) {
-      const hasComma = (replace[0].slice(-1) === ',');
+      const hasComma = replace[0].slice(-1) === ',';
       params.skin = params.skin.replace(replace[0], `${option.key}: ${option.setting}${hasComma ? ',' : ''}`);
     }
   });
 
   console.log('\nUser Alien Options AFTER Upgrade:\n', extractSavedParams(params.skin, options));
-
 };
 
-export {
-  updateParamsSkinContent
-};
+export { updateParamsSkinContent };

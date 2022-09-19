@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * uploadSkin: uploads/updates alien skins
  * =======================================

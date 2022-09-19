@@ -1,10 +1,10 @@
+// @ts-nocheck
 /**
  * Get User status of installed Alien version
  * ==========================================
  *
  */
 const { argv } = require('yargs');
-const fetch = require('node-fetch');
 const Twoday = require('@neonwilderness/twoday');
 
 require('dotenv-safe').config();
@@ -18,13 +18,14 @@ const users = process.env.USERSTATS.split('|');
 
 (async () => {
   try {
+    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
     const response = await fetch('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@latest/package.json');
     const pkg = await response.json();
     console.log(`\nCurrent Github Alien version is ${pkg.version}`);
 
     const td = new Twoday(platform);
     let userVersions = [];
-    for (alias of users) {
+    for (let alias of users) {
       await td.delayNextPromise();
       const version = await td.checkUserAlienVersion(alias);
       userVersions.push({ alias, version });
