@@ -24,7 +24,7 @@ const platform = argv.platform.toLowerCase();
 
 (async () => {
   try {
-    const td = new Twoday(platform);
+    const td = new Twoday.Twoday(platform);
     await td.login();
     await td.useLayout(alias, 'alien');
 
