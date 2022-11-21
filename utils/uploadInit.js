@@ -3,7 +3,7 @@
  * ===============================================================================
  *
  */
-const { argv } = require('yargs');
+const argv = require('yargs/yargs')(process.argv.slice(2)).argv;
 const fs = require('fs');
 const path = require('path');
 const Twoday = require('@neonwilderness/twoday');

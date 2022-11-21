@@ -33,7 +33,9 @@ class AlienInsideTwoday {
       delayBetweenUpdates: 400, // delay in milliseconds to avoid server stress/denials
       redirectToNewSite: true, // leaves Twoday for all link clicks from non-admins
       needUpdateLevel: 'Owner', // who may launch the story update process: Owner | Admin
-      debug: false
+      debug: false,
+      isTest: false,
+      testUser: 'NeonWilderness'
     };
     this.providerPostIdReg = {
       wordpress: /\?p=([0-9]*)/,
@@ -105,6 +107,7 @@ class AlienInsideTwoday {
     this.options = Object.assign({}, this.defaults, options);
     this.options.newBlogAlias = this.getNewBlogAlias();
     this.options.version = this.parseVersion(document.body.dataset.version);
+    if (this.options.isTest) this.options.debug = true;
 
     if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
 
@@ -140,7 +143,8 @@ class AlienInsideTwoday {
 
     let isCreator = $('#createInfo>a').text() === '<% username %>';
     let isAdmin = this.isUserAdministrator();
-    let canSync = (needUpdateLevel === 'owner' && isCreator) || (needUpdateLevel === 'admin' && isAdmin);
+    let isTest = this.options.isTest && '<% username %>' === this.options.testUser;
+    let canSync = (needUpdateLevel === 'owner' && isCreator) || (needUpdateLevel === 'admin' && isAdmin) || isTest;
 
     if (!canSync && !!this.options.redirectToNewSite) {
       if (this.options.debug) console.log('Redirecting to new site.');

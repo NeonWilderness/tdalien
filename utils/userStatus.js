@@ -1,11 +1,10 @@
-// @ts-nocheck
 /**
  * Get User status of installed Alien version
  * ==========================================
  *
  */
-const { argv } = require('yargs');
-const Twoday = require('@neonwilderness/twoday');
+const argv = require('yargs/yargs')(process.argv.slice(2)).argv;
+const twoday = require('@neonwilderness/twoday');
 
 require('dotenv-safe').config();
 
@@ -23,7 +22,7 @@ const users = process.env.USERSTATS.split('|');
     const pkg = await response.json();
     console.log(`\nCurrent Github Alien version is ${pkg.version}`);
 
-    const td = new Twoday(platform);
+    const td = new twoday.Twoday(platform);
     let userVersions = [];
     for (let alias of users) {
       await td.delayNextPromise();

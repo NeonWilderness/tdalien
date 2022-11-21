@@ -1,13 +1,12 @@
-// @ts-nocheck
 /**
  * uploadSkin: uploads/updates alien skins
  * =======================================
  *
  */
-const { argv } = require('yargs');
+const argv = require('yargs/yargs')(process.argv.slice(2)).argv;
 const fs = require('fs');
 const path = require('path');
-const Twoday = require('@neonwilderness/twoday');
+const twoday = require('@neonwilderness/twoday');
 
 require('dotenv-safe').config();
 
@@ -25,7 +24,7 @@ const platform = argv.platform.toLowerCase();
 
 (async () => {
   try {
-    const td = new Twoday(platform);
+    const td = new twoday.Twoday(platform);
     await td.login();
     await td.useLayout(alias, 'alien');
 

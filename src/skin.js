@@ -157,6 +157,7 @@ const readStoriesMain = (changedOrNewStories, options) => {
           );
         if (tdStories.hasOwnProperty(published)) story.id = tdStories[published];
         all.push(story);
+        if (options.debug) console.log(`finalStory> ${JSON.stringify(story)}`);
         return all;
       }, []);
       resolve(finalStories);
@@ -272,7 +273,7 @@ const readStoriesSkin = (rssStories, options) => {
         return Promise.all(promises);
       } else {
         toastr.info('Keine neuen zu synchronisierenden Änderungen gefunden!');
-        return false;
+        return Promise.resolve();
       }
     })
     .then(() => {

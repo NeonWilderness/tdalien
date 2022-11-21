@@ -1,4 +1,4 @@
-const { argv } = require('yargs');
+const argv = require('yargs/yargs')(process.argv.slice(2)).argv;
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
@@ -9,7 +9,7 @@ const semver = require('semver');
 const bump = mode => {
   // major | minor | patch (=default)
   let file = path.resolve(process.cwd(), 'package.json');
-  let pkg = JSON.parse(fs.readFileSync(file));
+  let pkg = JSON.parse(fs.readFileSync(file).toString());
   let newVersion = semver.inc(pkg.version, mode);
   console.log(`Version ${pkg.version} bumped to ${newVersion}.`);
   pkg.version = newVersion;
