@@ -22,15 +22,20 @@ const alienStatus = status => {
 };
 
 const xhrError = (when, which, xhr) => {
-  toastr.error(`Fehler beim ${when} von ${which}: ${xhr.status} | ${xhr.statustext}.`);
+  toastr.error(`Fehler beim ${when} von ${which}: ${xhr.status} | ${xhr.statusText}.`);
 };
 
 /**
- * Assures a timeout before the next promise http call
+ * Assures a timeout before the next http call
  * @param {number} delay ms to wait
  */
 const delayNextPromise = delay => {
   return new Promise(resolve => setTimeout(resolve, delay));
+};
+
+const delayed = async (promise, delay) => {
+  const result = await Promise.all([promise, delayNextPromise(delay)]);
+  return result[0];
 };
 
 const getSkinData = data => {
@@ -42,7 +47,7 @@ const getSkinData = data => {
     skinset: $form.find('[name="skinset"]').val(),
     module: $form.find('[name="module"]').val(),
     title: $form.find('[name="title"]').val(),
-    description: $form.find('[name="description"]').html(),
+    description: $form.find('[name="description"]').val(),
     skin: $form.find('[name="skin"]').val(),
     save: $form.find('[name="save"]').val()
   };
@@ -50,10 +55,10 @@ const getSkinData = data => {
 
 const readParamsSkinContent = () => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get(`${homeDomain}layouts/alien/skins/edit?key=Site.implant`, function (data) {
+    $.get(`${homeDomain}layouts/alien/skins/edit?key=Site.implant`, function (data) {
       let params = getSkinData(data);
       resolve(params);
-    }).fail(() => {
+    }).fail(function (xhr, status, error) {
       xhrError('Lesen(get)', 'Skin Site.implant', xhr);
       reject();
     });
@@ -62,9 +67,9 @@ const readParamsSkinContent = () => {
 
 const saveParamsSkinContent = params => {
   return new Promise((resolve, reject) => {
-    let xhr = $.post(`${homeDomain}layouts/alien/skins/edit?key=Site.implant`, params, function () {
+    $.post(`${homeDomain}layouts/alien/skins/edit?key=Site.implant`, params, function () {
       resolve();
-    }).fail(() => {
+    }).fail(function (xhr, status, error) {
       xhrError('Update(post)', 'Skin Site.implant', xhr);
       reject();
     });
@@ -73,7 +78,7 @@ const saveParamsSkinContent = params => {
 
 const readStoriesSkinContent = () => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get(`${homeDomain}layouts/alien/skins/edit?key=Site.stories`, function (data) {
+    $.get(`${homeDomain}layouts/alien/skins/edit?key=Site.stories`, function (data) {
       let params = getSkinData(data);
       // @ts-ignore
       let skinStories = JSON.parse(params.skin || '[]');
@@ -81,7 +86,7 @@ const readStoriesSkinContent = () => {
         story.published = new Date(story.published);
       });
       resolve({ params, skinStories });
-    }).fail(() => {
+    }).fail(function (xhr, status, error) {
       xhrError('Lesen(get)', 'Skin Site.stories', xhr);
       reject();
     });
@@ -90,9 +95,9 @@ const readStoriesSkinContent = () => {
 
 const saveStoriesSkinContent = params => {
   return new Promise((resolve, reject) => {
-    let xhr = $.post(`${homeDomain}layouts/alien/skins/edit?key=Site.stories`, params, function () {
+    $.post(`${homeDomain}layouts/alien/skins/edit?key=Site.stories`, params, function () {
       resolve();
-    }).fail(() => {
+    }).fail(function (xhr, status, error) {
       xhrError('Update(post)', 'Skin Site.stories', xhr);
       reject();
     });
@@ -105,9 +110,9 @@ const saveStoriesSkinContent = params => {
  * @param {array} skinStories - saved story data from last update run
  * @returns {array} filtered stories (new or changed)
  */
-const compareStories = (rssStories, skinStories, options) => {
+const compareStories = (rssStories, skinStories, self) => {
   const storyUnchanged = (rssStory, skinStory) => {
-    if (options.debug) {
+    if (self.options.debug) {
       let rss = { title: rssStory.title, comments: rssStory.comments, snippet: rssStory.contentSnippet };
       let skin = { title: skinStory.title, comments: skinStory.comments, snippet: skinStory.contentSnippet };
       console.table({ rss, skin });
@@ -119,49 +124,48 @@ const compareStories = (rssStories, skinStories, options) => {
     );
   };
 
-  if (options.debug) console.log('=> Story comparison rss/skin:');
+  self.log('!Story comparison rss vs. skin:');
 
   let checker = rssStories.reduce((all, story) => {
     all[properDateFormat(story.published)] = story;
     return all;
   }, {});
 
-  if (options.debug) console.table(checker);
+  if (self.options.debug) console.table(checker);
 
   return skinStories.reduce((all, story) => {
     let lookupKey = properDateFormat(story.published);
     if (all.hasOwnProperty(lookupKey) && storyUnchanged(all[lookupKey], story)) {
       delete all[lookupKey];
-      if (options.debug) console.log(lookupKey, 'unchanged & removed.');
+      self.log(`${lookupKey}: unchanged / no update.`);
     }
     return all;
   }, checker);
 };
 
-const readStoriesMain = (changedOrNewStories, options) => {
+const readStoriesMain = (changedOrNewStories, self) => {
   return new Promise((resolve, reject) => {
-    let xhr = $.get(`${homeDomain}stories/main`, function (data) {
-      let tdStories = {};
-      let $admin = $(data).find('.admin');
+    $.get(`${homeDomain}stories/main`, function (data) {
+      const tdStories = {};
+      const $admin = $(data).find('.admin');
       $admin.find('.storyData').each(function () {
         let [title, id, pubDate] = this.innerText.split(':¦:');
         pubDate = pubDate.trim();
         tdStories[pubDate] = id;
-        if (options.debug) console.log(`storyData> title: ${title}, pubDate: ${pubDate}, id: ${id}`);
+        self.log(`tdStory> title: ${title.trim()}, pubDate: ${pubDate}, id: ${id}`);
       });
-      let finalStories = Object.keys(changedOrNewStories).reduce((all, published) => {
-        let story = changedOrNewStories[published];
-        if (options.debug)
-          console.log(
-            `Searching story: ${story.title}, published: ${published}, found: ${tdStories.hasOwnProperty(published)}`
-          );
-        if (tdStories.hasOwnProperty(published)) story.id = tdStories[published];
+      const finalStories = Object.keys(changedOrNewStories).reduce((all, published) => {
+        const story = changedOrNewStories[published];
+        const foundOnTwoday = tdStories.hasOwnProperty(published);
+        if (foundOnTwoday) story.id = tdStories[published];
+        self.log(
+          `!Story "${story.title}", published: ${published}, ${foundOnTwoday ? 'exists @ id: ' + story.id : 'is new'}`
+        );
         all.push(story);
-        if (options.debug) console.log(`finalStory> ${JSON.stringify(story)}`);
         return all;
       }, []);
       resolve(finalStories);
-    }).fail(() => {
+    }).fail(function (xhr, status, error) {
       xhrError('Lesen(get)', 'Twoday Beitragsübersicht', xhr);
       reject();
     });
@@ -190,7 +194,7 @@ const getFormData = data => {
 
 const properDateFormat = date => {
   // formats date to "dd.mm.yyyy, hh:mm"
-  let s = date.toLocaleString('de-DE', {
+  const s = date.toLocaleString('de-DE', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -198,16 +202,16 @@ const properDateFormat = date => {
     minute: '2-digit'
   });
   // reformats date to "yyyy-mm-dd hh:mm"
-  return s.substr(0, 10).split('.').reverse().join('-') + s.slice(-6);
+  return s.slice(0, 10).split('.').reverse().join('-') + s.slice(-6);
 };
 
 const compileStoryTitle = (title, comments, options) => {
-  let prefix = options.titlePrefix.replace('$comments', comments);
-  let postfix = options.titlePostfix.replace('$comments', comments);
+  const prefix = options.titlePrefix.replace('$comments', comments);
+  const postfix = options.titlePostfix.replace('$comments', comments);
   return `${prefix}${title || '...'}${postfix}`;
 };
 
-const createOrUpdateTwodayStory = (story, options) => {
+const createOrUpdateTwodayStory = async (story, options) => {
   const params = {
     // isCreate=false (Aktualisierung)
     false: {
@@ -225,71 +229,70 @@ const createOrUpdateTwodayStory = (story, options) => {
   const isCreate = !story.hasOwnProperty('id');
   const sUrl = `${homeDomain}${params[isCreate].url}`;
 
-  return new Promise((resolve, reject) => {
-    let xhr = $.get(sUrl, function (data) {
-      story.alienLastUpdate = new Date().toISOString();
-      let formData = getFormData(data);
-      formData.content_title = compileStoryTitle(story.title, story.comments, options);
-      formData.content_text = alienStatus(story);
-      formData.createtime = properDateFormat(story.published);
-      if (!options.allowComments || formData.discussions == null) delete formData.discussions;
+  const getStory = () => {
+    return new Promise((resolve, reject) => {
+      $.get(sUrl, function (data) {
+        story.alienLastUpdate = new Date().toISOString();
+        let formData = getFormData(data);
+        formData.content_title = compileStoryTitle(story.title, story.comments, options);
+        formData.content_text = alienStatus(story);
+        formData.createtime = properDateFormat(story.published);
+        if (!options.allowComments || formData.discussions == null) delete formData.discussions;
+        resolve(formData);
+      }).fail(function (xhr, status, error) {
+        xhrError(`${params[isCreate].method}(GET)`, `Twoday-Beitrag "${story.title}"`, xhr);
+        reject();
+      });
+    });
+  };
 
-      xhr = $.post(sUrl, formData, function () {
+  const postStory = formData => {
+    return new Promise((resolve, reject) => {
+      $.post(sUrl, formData, function () {
         toastr.info(
           `Beitrag ${story.title} vom ${story.published.toLocaleString()} in Twoday ${params[isCreate].text}.`
         );
         resolve();
-      }).fail(() => {
+      }).fail(function (xhr, status, error) {
         xhrError(`${params[isCreate].method}(POST)`, `Twoday-Beitrag "${story.title}"`, xhr);
         reject();
       });
-    }).fail(() => {
-      xhrError(`${params[isCreate].method}(GET)`, `Twoday-Beitrag "${story.title}"`, xhr);
-      reject();
     });
-  });
+  };
+
+  const fd = await delayed(getStory(), options.delayBetweenUpdates);
+  return await delayed(postStory(fd), options.delayBetweenUpdates);
 };
 
-const readStoriesSkin = (rssStories, options) => {
-  let skinParams = {};
+const readStoriesSkin = async (rssStories, self) => {
+  try {
+    const { params, skinStories } = await delayed(readStoriesSkinContent(), self.options.delayBetweenUpdates);
+    self.log(skinStories, '!Saved stories from last sync:');
 
-  readStoriesSkinContent()
-    .then(({ params, skinStories }) => {
-      if (options.debug) console.log('readStoriesSkinContent: ', skinStories);
-      skinParams = params;
-      const changedOrNewStories = compareStories(rssStories, skinStories, options);
-      if (Object.keys(changedOrNewStories).length > 0) return readStoriesMain(changedOrNewStories, options);
-      else return Promise.resolve([]);
-    })
-    // @ts-ignore
-    .then(finalStories => {
-      if (options.debug) console.log('finalStories: ', finalStories);
-      if (finalStories && finalStories.length) {
-        let promises = finalStories.map((story, index) => {
-          return delayNextPromise(index * options.delayBetweenUpdates).then(() =>
-            createOrUpdateTwodayStory(story, options)
-          );
-        });
-        return Promise.all(promises);
-      } else {
-        toastr.info('Keine neuen zu synchronisierenden Änderungen gefunden!');
-        return Promise.resolve();
+    const changedOrNewStories = compareStories(rssStories, skinStories, self);
+    if (Object.keys(changedOrNewStories).length) {
+      const finalStories = await delayed(readStoriesMain(changedOrNewStories, self), self.options.delayBetweenUpdates);
+      self.log(finalStories, '!Final stories to create or update:');
+      for (const story of finalStories) {
+        await delayed(createOrUpdateTwodayStory(story, self.options), self.options.delayBetweenUpdates);
       }
-    })
-    .then(() => {
-      let newSkinContent = JSON.stringify(rssStories, null, 2);
-      if (skinParams.skin !== newSkinContent) {
-        skinParams.skin = newSkinContent;
-        return saveStoriesSkinContent(skinParams);
-      } else return Promise.resolve();
-    })
-    .then(() => {
-      toastr.success('Synchronisation erfolgreich abgeschlossen.');
-    })
-    .catch(err => toastr.error(`Synchronisation endete mit Fehler: ${err}.`));
+    } else {
+      self.log('!No new stories or updates found.');
+      toastr.info('Keine neuen zu synchronisierenden Änderungen gefunden!');
+    }
+    let newSkinContent = JSON.stringify(rssStories, null, 2);
+    if (params.skin !== newSkinContent) {
+      params.skin = newSkinContent;
+      await delayed(saveStoriesSkinContent(params), self.options.delayBetweenUpdates);
+    }
+    toastr.success('Synchronisation erfolgreich abgeschlossen.');
+  } catch (err) {
+    toastr.error(`Synchronisation endete mit Fehler: ${err.toString()}.`);
+  }
 };
 
 export {
+  delayed,
   readStoriesSkin,
   readStoriesSkinContent,
   saveStoriesSkinContent,

@@ -1,5 +1,6 @@
 import './alien.less';
 import {
+  delayed,
   readStoriesSkin,
   readStoriesSkinContent,
   saveStoriesSkinContent,
@@ -49,6 +50,32 @@ class AlienInsideTwoday {
     this.alias = '';
   }
 
+  /**
+   * Log items
+   * - bold headline => item is string and first char is '!'
+   * @param {String|Object|Array} item
+   * @param {String} heading
+   * @returns {void}
+   */
+  log(item, heading = '') {
+    const headerStyle = 'font-weight:bold; margin:1em 0 .2em';
+    if (!this.options.debug) return;
+    let prefix = heading;
+    if (prefix.startsWith('!')) {
+      console.log(`%c${prefix.slice(1)}`, headerStyle);
+      prefix = '';
+    }
+    if (Array.isArray(item)) {
+      if (item.length) console.table(item);
+    } else {
+      if (typeof item === 'string' && item.startsWith('!')) {
+        console.log(`%c${item.slice(1)}`, headerStyle);
+      } else {
+        console.log(`${prefix}${item}`);
+      }
+    }
+  }
+
   checkNewVersionAvailability() {
     let delayRelease = localStorage.getItem('delayAlienRelease');
     if (delayRelease && Date.now() <= Number(delayRelease)) return;
@@ -87,9 +114,9 @@ class AlienInsideTwoday {
    * @returns {RegExp} appropriate to the RSS origin or null if origin is unknown
    */
   getFeedsPostIdSelector(generator) {
-    let provider = Object.keys(this.providerPostIdReg),
-      origin = '',
-      i = 0;
+    const provider = Object.keys(this.providerPostIdReg);
+    let origin = '';
+    let i = 0;
     while (!origin && i < provider.length) {
       let platform = provider[i];
       if (generator.indexOf(platform) >= 0) origin = platform;
@@ -107,17 +134,16 @@ class AlienInsideTwoday {
     this.options = Object.assign({}, this.defaults, options);
     this.options.newBlogAlias = this.getNewBlogAlias();
     this.options.version = this.parseVersion(document.body.dataset.version);
+    this.navIcon = $('#showMenu');
     if (this.options.isTest) this.options.debug = true;
 
-    if (this.options.debug) console.log(`Alien Options: ${JSON.stringify(this.options, null, 2)}`);
+    this.log(JSON.stringify(this.options, null, 2), '!Alien Tool Options:');
 
     if (!this.isAppUser()) {
       $('#frame').attr('srcdoc', window.atob(this.noAlien));
-      $('#showMenu')
-        .attr('title', 'Zur Layoutübersicht')
-        .on('click', function () {
-          window.location.href = '/layouts';
-        });
+      this.navIcon.attr('title', 'Zur Layoutübersicht').on('click', function () {
+        window.location.href = '/layouts';
+      });
       return;
     }
 
@@ -136,10 +162,9 @@ class AlienInsideTwoday {
         }
       }
     }
-    if (this.options.debug) console.log(`Using iframe url: ${iframeUrl}.`);
+    this.log(`Using iframe url: ${iframeUrl}`);
 
     let needUpdateLevel = this.options.needUpdateLevel.toString().toLowerCase().substr(0, 5);
-    if (this.options.debug) console.log(`Required update level: ${needUpdateLevel}`);
 
     let isCreator = $('#createInfo>a').text() === '<% username %>';
     let isAdmin = this.isUserAdministrator();
@@ -147,7 +172,7 @@ class AlienInsideTwoday {
     let canSync = (needUpdateLevel === 'owner' && isCreator) || (needUpdateLevel === 'admin' && isAdmin) || isTest;
 
     if (!canSync && !!this.options.redirectToNewSite) {
-      if (this.options.debug) console.log('Redirecting to new site.');
+      this.log('Redirecting to new site.');
       window.location.replace(iframeUrl);
       return false;
     }
@@ -155,11 +180,10 @@ class AlienInsideTwoday {
     this.options.colorAlias = this.options.colorAlias.toLowerCase();
     if (this.options.colorAlias !== this.defaults.colorAlias) $('#alias').css('color', this.options.colorAlias);
 
-    let navIcon = $('#showMenu');
     this.options.colorNavIcon = this.options.colorNavIcon.toLowerCase();
-    if (this.options.colorNavIcon !== this.defaults.colorNavIcon) navIcon.css('color', this.options.colorNavIcon);
-    if (!!this.options.menuOffsetTop) navIcon.css('top', 8 + this.options.menuOffsetTop);
-    if (!!this.options.menuOffsetRight) navIcon.css('right', 25 + this.options.menuOffsetRight);
+    if (this.options.colorNavIcon !== this.defaults.colorNavIcon) this.navIcon.css('color', this.options.colorNavIcon);
+    if (!!this.options.menuOffsetTop) this.navIcon.css('top', 8 + this.options.menuOffsetTop);
+    if (!!this.options.menuOffsetRight) this.navIcon.css('right', 25 + this.options.menuOffsetRight);
 
     $('.alien').each((_idx, el) => {
       switch (el.tagName) {
@@ -170,6 +194,20 @@ class AlienInsideTwoday {
           break;
         case 'IFRAME':
           /** @type { HTMLIFrameElement } */ (el).src = iframeUrl;
+          let self = this;
+          el.addEventListener(
+            'load',
+            function () {
+              // when iframe has been fully loaded, check presence of #wpadminbar
+              if ($('#wpadminbar')) {
+                // and improve visibility of navIcon
+                self.options.menuOffsetTop += 24;
+                self.navIcon.css('top', 8 + self.options.menuOffsetTop);
+              }
+              self.navIcon.removeClass('faded');
+            },
+            { once: true }
+          );
       }
     });
 
@@ -196,7 +234,7 @@ class AlienInsideTwoday {
 
         this.restoreSavedParams();
 
-        let $menuParams = $('#menuParams');
+        const $menuParams = $('#menuParams');
         if (this.options.targetUrl === this.defaults.targetUrl) {
           $menuParams.addClass('highlight');
           toastr.warning(
@@ -212,29 +250,30 @@ class AlienInsideTwoday {
 
   initClickFunctions() {
     let isOpen = false;
-    let navIcon = $('#showMenu');
-    let icon = navIcon.find('i');
+    let icon = this.navIcon.find('i');
+
     let toggleSidebar = () => {
       if (isOpen) document.body.classList.remove('show-menu');
       else document.body.classList.add('show-menu');
-      navIcon.attr('title', `Menü ${isOpen ? 'ein' : 'aus'}blenden`);
+      this.navIcon.attr('title', `Menü ${isOpen ? 'ein' : 'aus'}blenden`);
       icon.addClass('fa-spin');
       setTimeout(() => {
         icon.toggleClass('fa-navicon fa-close');
         icon.removeClass('fa-spin');
-        if (!!this.options.menuOffsetTop) navIcon.css('top', 8 + Number(!isOpen) * this.options.menuOffsetTop);
-        if (!!this.options.menuOffsetRight) navIcon.css('right', 25 + Number(!isOpen) * this.options.menuOffsetRight);
+        if (!!this.options.menuOffsetTop) this.navIcon.css('top', 8 + Number(!isOpen) * this.options.menuOffsetTop);
+        if (!!this.options.menuOffsetRight)
+          this.navIcon.css('right', 25 + Number(!isOpen) * this.options.menuOffsetRight);
       }, 500);
       isOpen = !isOpen;
     };
 
-    navIcon.on('click', function (e) {
+    this.navIcon.on('click', function (e) {
       toggleSidebar();
     });
   }
 
   isAppUser() {
-    this.alias = document.getElementById('alias').innerText || '';
+    this.alias = document.getElementById('alias').innerText || 'N/A';
     return window.atob(this.appUser).split('|').indexOf(this.alias) >= 0;
   }
 
@@ -262,20 +301,29 @@ class AlienInsideTwoday {
 
   readAlienRSS() {
     let self = this;
-    $.getJSON(`${this.functionUrl}?url=${urlJoin(this.options.targetUrl, this.options.rssFeedUrl)}&alias=${this.alias}`, function (data) {
-      if (data.items && data.items.length > 0) {
-        let rssStories = self.readStoriesFromRssData(data);
-        if (self.options.debug) console.log('Parsed RSS stories: ', rssStories);
-        readStoriesSkin(rssStories, self.options);
+    $.getJSON(
+      `${this.functionUrl}?url=${urlJoin(this.options.targetUrl, this.options.rssFeedUrl)}&alias=${this.alias}`,
+      function (data) {
+        if (data.items && data.items.length > 0) {
+          let rssStories = self.readStoriesFromRssData(data);
+          self.log(rssStories, `!Parsed RSS stories (${self.options.syncStories} to sync):`);
+          readStoriesSkin(rssStories, self);
+        }
       }
-    }).fail(function (jqXHR, type, error) {
-      console.error(`Netlify getrss error: ${type} | ${error}.`);
-      toastr.error(`Das Lesen des RSS Feeds endete mit Fehler: ${type} - ${error}.`);
+    ).fail(function (xhr) {
+      console.error(`Netlify getrss error: ${xhr.status} | ${xhr.statusText}.`);
+      toastr.error(`Das Lesen des RSS Feeds endete mit Fehler: ${xhr.status} | ${xhr.statusText}.`);
+      if (xhr.status === 500) {
+        toastr.error(`Eventuell wurde der Blog "${self.options.newBlogAlias}" auf PRIVAT gestellt.`);
+        setTimeout(() => {
+          window.location.replace(self.options.targetUrl);
+        }, 2000);
+      }
     });
   }
 
   readStoriesFromRssData(json) {
-    if (this.options.debug) console.log(`Netlify getrss items: ${JSON.stringify(json, null, 2)}`);
+    this.log(JSON.stringify(json, null, 2), '!Netlify getrss items:');
 
     let regexPostId = this.getFeedsPostIdSelector(json.generator.toLowerCase());
 
@@ -298,7 +346,7 @@ class AlienInsideTwoday {
       // fix snippet content
       let contentSnippet =
         typeof item.contentSnippet !== 'string' ? '...' : item.contentSnippet.replace(/ Werbeanzeigen/gi, '');
-      if (contentSnippet.slice(-1) !== '.') contentSnippet += '\u2026';
+      if (!contentSnippet.slice(-3).includes('\u2026')) contentSnippet += '\u2026';
 
       let story = {
         postid,
@@ -310,7 +358,7 @@ class AlienInsideTwoday {
         comments: item[this.options.counterField] || 0
       };
 
-      if (this.options.debug) console.log(`story: ${JSON.stringify(story, null, 2)}`);
+      this.log(JSON.stringify(story, null, 2), 'rss story: ');
 
       all.push(story);
       return all;
@@ -323,42 +371,54 @@ class AlienInsideTwoday {
       .slice(0, this.options.syncStories);
   }
 
-  restoreSavedParams() {
-    let savedVersion = localStorage.getItem('savedAlienVersion');
-    let savedStories = localStorage.getItem('savedAlienSkinStories');
-    let savedParams = localStorage.getItem('savedAlienSkinParams');
-    if (!savedVersion || !savedStories || !savedParams) return;
-    if (this.parseVersion(document.body.dataset.version) <= this.parseVersion(savedVersion)) return;
-    readStoriesSkinContent()
-      .then(({ params }) => {
-        params.skin = savedStories;
-        return saveStoriesSkinContent(params);
-      })
-      .then(() => readParamsSkinContent())
-      .then(params => {
-        updateParamsSkinContent(params, savedParams, this.options);
-        return saveParamsSkinContent(params);
-      })
-      .then(() => {
-        localStorage.removeItem('savedAlienVersion'); // deactivate restore trigger
-        toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich wiederhergestellt!');
-        toastr.info('Bitte laden Sie nun die Seite neu per "Hard-Reload" (Windows: Strg-F5, Mac: Cmd-R).');
-      })
-      .catch(err => toastr.error(`Die Wiederherstellung der Parameter/Einstellungen endete mit Fehler: ${err}.`));
+  async restoreSavedParams() {
+    try {
+      // get back saved tool items from the browser's localStorage
+      const savedVersion = localStorage.getItem('savedAlienVersion');
+      const savedStories = localStorage.getItem('savedAlienSkinStories');
+      const savedParams = localStorage.getItem('savedAlienSkinParams');
+
+      // quit if not available or incomplete
+      if (!savedVersion || !savedStories || !savedParams) return;
+
+      // quit if saved tool version is not older
+      if (this.parseVersion(document.body.dataset.version) <= this.parseVersion(savedVersion)) return;
+
+      // read skin Site.stories, then replace content with saved info and post updated story status
+      const { params } = await delayed(readStoriesSkinContent(), this.options.delayBetweenUpdates);
+      params.skin = savedStories;
+      await delayed(saveStoriesSkinContent(params), this.options.delayBetweenUpdates);
+
+      // read skin Site.implant (tool options/params)
+      const newParams = await delayed(readParamsSkinContent(), this.options.delayBetweenUpdates);
+
+      // update the fresh release options with the individual/old user options and save updated options
+      updateParamsSkinContent(newParams, savedParams, this.options);
+      await delayed(saveParamsSkinContent(newParams), this.options.delayBetweenUpdates);
+
+      // deactivate the restore trigger to prevent update loops
+      localStorage.removeItem('savedAlienVersion');
+      toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich wiederhergestellt!');
+      toastr.info('Bitte laden Sie nun die Seite neu per "Hard-Reload" (Windows: Strg-F5, Mac: Cmd-R).');
+    } catch (err) {
+      toastr.error(`Die Wiederherstellung der Parameter/Einstellungen endete mit Fehler: ${err.toString()}.`);
+    }
   }
 
-  saveCurrentParams() {
-    readStoriesSkinContent()
-      .then(({ skinStories }) => {
-        localStorage.setItem('savedAlienSkinStories', JSON.stringify(skinStories));
-        return readParamsSkinContent();
-      })
-      .then(params => {
-        localStorage.setItem('savedAlienSkinParams', params.skin);
-        localStorage.setItem('savedAlienVersion', document.body.dataset.version);
-        toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich gesichert!');
-      })
-      .catch(err => toastr.error(`Die Sicherung der Parameter/Einstellungen endete mit Fehler: ${err}.`));
+  async saveCurrentParams() {
+    try {
+      // read current story sync status and save to localStorage
+      const { skinStories } = await delayed(readStoriesSkinContent(), this.options.delayBetweenUpdates);
+      localStorage.setItem('savedAlienSkinStories', JSON.stringify(skinStories));
+      // read current user tool options and store as well
+      const params = await delayed(readParamsSkinContent(), this.options.delayBetweenUpdates);
+      localStorage.setItem('savedAlienSkinParams', params.skin);
+      // store the "old" Alien tool version
+      localStorage.setItem('savedAlienVersion', document.body.dataset.version);
+      toastr.success('Ihre Parameter und Einstellungen wurden erfolgreich gesichert!');
+    } catch (err) {
+      toastr.error(`Die Sicherung der Parameter/Einstellungen endete mit Fehler: ${err.toString()}.`);
+    }
   }
 }
 

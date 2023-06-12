@@ -22,7 +22,7 @@ const platform = argv.platform.toLowerCase();
 
 (async () => {
   try {
-    const td = new twoday.Twoday(platform);
+    const td = new twoday.Twoday(platform, { delay: 300 });
     await td.login();
     // get all layout names
     const layoutNames = await td.getLayoutNames(alias);

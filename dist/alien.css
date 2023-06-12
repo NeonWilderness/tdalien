@@ -87,11 +87,15 @@ iframe {
   right: 25px;
   border: none;
   background: transparent;
-  color: #13C4A5;
+  color: #13c4a5;
   opacity: 0.9;
   z-index: 1000;
   -webkit-transition: -webkit-transform 0.4s;
   transition: transform 0.4s;
+}
+#showMenu.faded {
+  opacity: 0;
+  transition: none;
 }
 #showMenu:hover,
 #showMenu:focus {
@@ -135,7 +139,7 @@ iframe {
   margin-right: 1em;
 }
 .menu-top .profile span {
-  color: #13C4A5;
+  color: #13c4a5;
 }
 .menu-top .profile,
 .menu-side {

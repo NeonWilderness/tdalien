@@ -22,10 +22,9 @@ const users = process.env.USERSTATS.split('|');
     const pkg = await response.json();
     console.log(`\nCurrent Github Alien version is ${pkg.version}`);
 
-    const td = new twoday.Twoday(platform);
+    const td = new twoday.Twoday(platform, { delay: 300 });
     let userVersions = [];
     for (let alias of users) {
-      await td.delayNextPromise();
       const version = await td.checkUserAlienVersion(alias);
       userVersions.push({ alias, version });
     }

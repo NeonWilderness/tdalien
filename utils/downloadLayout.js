@@ -23,7 +23,7 @@ const platform = argv.platform.toLowerCase();
 
 (async () => {
   try {
-    const td = new twoday.Twoday(platform);
+    const td = new twoday.Twoday(platform, { delay: 300 });
     await td.login();
 
     await td.downloadLayout(alias, {

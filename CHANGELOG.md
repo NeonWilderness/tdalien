@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.4] - 2023-11-06
+### Added
+- Reposition menu/nav icon when Wordpress Admin bar is present
+- Catch error and issue special message when wordpress blog was switched to "private"
+
+### Changed
+- Use Async/Await for all promise-related server requests
+- Make sure strict ms breaks between server requests are followed
+- Bump dev dependencies
+- Bump jquery to 3.7.0 version in site.page HTML
+- Centralized log handling / improved log messages
+
+### Removed
+- Deleted obsolete Promise polyfill script from site.page HTML
+
 ## [1.11.0] - 2022-09-17
 ### Added
 - New Netlify function to compensate for webtask.io's platform shutdown
