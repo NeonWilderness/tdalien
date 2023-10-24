@@ -3,6 +3,7 @@ const path = require('path');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 require('dotenv-safe').config();
 const appUser = Buffer.from(process.env.APPUSER).toString('base64');
 const noAlien = Buffer.from(process.env.NOALIEN).toString('base64');
@@ -89,6 +90,10 @@ module.exports = {
         removeAttributeQuotes: false,
         minifyJS: false
       }
+    }),
+    new CleanWebpackPlugin({
+      cleanAfterEveryBuildPatterns: ['**/*.LICENSE.txt'],
+      protectWebpackAssets: false
     })
   ]
 };
