@@ -77,7 +77,8 @@ module.exports = {
       }
     ]
   },
-  plugins: [ // @ts-ignore
+  plugins: [
+    // @ts-ignore
     new ESLintPlugin(),
     new MiniCssExtractPlugin({
       filename: 'alien.css'
@@ -92,6 +93,7 @@ module.exports = {
       }
     }),
     new CleanWebpackPlugin({
+      cleanOnceBeforeBuildPatterns: ['**/*', '!alien*.zip'],
       cleanAfterEveryBuildPatterns: ['**/*.LICENSE.txt'],
       protectWebpackAssets: false
     })
