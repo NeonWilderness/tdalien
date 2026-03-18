@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.5] - 2025-04-13 (not published yet)
+### Added
+- Added new eslint.config.js based on eslint's "flat config" pattern
+- Added module eslint-plugin-prettier
+
+### Changed
+- Bump dev dependencies
+- Bump jquery to 3.7.1 version in site.page HTML
+
+### Removed
+- Removed obsolete module eslint-config-prettier
+
 ## [1.12.4] - 2023-11-06
 ### Added
 - Reposition menu/nav icon when Wordpress Admin bar is present
