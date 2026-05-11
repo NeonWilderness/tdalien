@@ -3,7 +3,7 @@
  * ===========================================
  *
  */
-const argv = require('yargs/yargs')(process.argv.slice(2)).argv;
+const argv = require('minimist')(process.argv.slice(2));
 const twoday = require('@neonwilderness/twoday');
 
 require('dotenv-safe').config();

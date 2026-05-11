@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "noEmit": true
+    "checkJs": false,
+    "target": "ESNext",
+    "module": "commonjs"
   },
-  "exclude": ["node_modules", "dist", "utils"]
+  "exclude": ["node_modules", "dist"]
 }

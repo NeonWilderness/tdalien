@@ -1,4 +1,4 @@
-const argv = require('yargs/yargs')(process.argv.slice(2)).argv;
+const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');

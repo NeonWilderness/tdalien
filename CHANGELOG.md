@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump dev dependencies
 - Bump jquery to 3.7.1 version in site.page HTML
+- Swap yargs for minimist
 
 ### Removed
 - Removed obsolete module eslint-config-prettier

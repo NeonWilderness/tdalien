@@ -53,7 +53,7 @@ class AlienInsideTwoday {
   /**
    * Log items
    * - bold headline => item is string and first char is '!'
-   * @param {String|Object|Array} item
+   * @param {String|Object|Array<string>} item
    * @param {String} heading
    * @returns {void}
    */
