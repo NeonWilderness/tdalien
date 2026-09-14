@@ -17,7 +17,7 @@ const users = process.env.USERSTATS.split('|');
 
 (async () => {
   try {
-    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+    //const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
     const response = await fetch('https://cdn.jsdelivr.net/gh/NeonWilderness/tdalien@latest/package.json');
     const pkg = await response.json();
     console.log(`\nCurrent Github Alien version is ${pkg.version}`);

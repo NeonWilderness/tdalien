@@ -15,20 +15,20 @@ module.exports = [
     },
     rules: {
       ...eslintPluginPromise.configs.recommended.rules,
-      'allowSingleLineBlocks': 0,
-      'brace-style': 0,
-      'curly': 0,
-      'one-var': 0,
-      'padded-blocks': 0,
-      'prefer-const': 0,
-      'prefer-promise-reject-errors': 0,
-      'no-extra-boolean-cast': 0,
-      'no-extra-parens': 0,
-      'no-prototype-builtins': 0,
-      'no-trailing-spaces': 0,
-      'no-undef': 0,
-      'semi': 0,
-      'space-before-function-paren': 0
+      'allowSingleLineBlocks': 'off',
+      'brace-style': 'off',
+      'curly': 'off',
+      'one-var': 'off',
+      'padded-blocks': 'off',
+      'prefer-const': 'off',
+      'prefer-promise-reject-errors': 'off',
+      'no-extra-boolean-cast': 'off',
+      'no-extra-parens': 'off',
+      'no-prototype-builtins': 'off',
+      'no-trailing-spaces': 'off',
+      'no-undef': 'off',
+      'semi': 'off',
+      'space-before-function-paren': 'off'
     }
   }
 ];
