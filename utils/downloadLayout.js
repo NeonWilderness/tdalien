@@ -7,7 +7,7 @@ const argv = require('minimist')(process.argv.slice(2));
 const path = require('path');
 const twoday = require('@neonwilderness/twoday');
 
-require('dotenv-safe').config();
+require('node:process').loadEnvFile();
 
 if (!argv.alias) {
   console.log('Blog alias must be specified with --alias=blogname');

@@ -6,7 +6,7 @@
 const argv = require('minimist')(process.argv.slice(2));
 const twoday = require('@neonwilderness/twoday');
 
-require('dotenv-safe').config();
+require('node:process').loadEnvFile();
 
 if (!argv.platform) {
   console.log('Target platform must be specified with --platform=dev|prod');
